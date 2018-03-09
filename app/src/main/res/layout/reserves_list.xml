@@ -1,0 +1,22 @@
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.mavimdev.fitnessh.fragment.ReservedClassesFragment">
+
+    <!-- TODO: Update blank fragment layout -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:text="@string/hello_blank_fragment" />
+    <ToggleButton
+        android:id="@+id/simpleToggleButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:checked="false"
+        android:textOff="On State"
+        android:textOn="Off State"
+        android:layout_centerHorizontal="true"
+        android:textColor="#f00" /><!--red color for displayed text-->
+
+</FrameLayout>

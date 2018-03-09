@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">FitnessH</string>
+    <string name="today">Hoje</string>
+    <string name="tomorrow">Amanhã</string>
+    <string name="reservation">Reservas</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+</resources>
