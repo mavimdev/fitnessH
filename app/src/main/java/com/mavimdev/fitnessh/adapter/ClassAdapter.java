@@ -1,6 +1,10 @@
 package com.mavimdev.fitnessh.adapter;
 
-import android.graphics.Color;
+import android.app.AlarmManager;
+import android.app.PendingIntent;
+import android.content.Context;
+import android.content.Intent;
+import android.os.Build;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -14,11 +18,11 @@ import com.mavimdev.fitnessh.model.FitClass;
 import com.mavimdev.fitnessh.model.FitClassStatus;
 import com.mavimdev.fitnessh.network.FitnessDataService;
 import com.mavimdev.fitnessh.network.RetrofitInstance;
+import com.mavimdev.fitnessh.service.SchedulerReceiver;
 import com.mavimdev.fitnessh.util.ClassState;
 import com.mavimdev.fitnessh.util.FitHelper;
 
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 
@@ -52,7 +56,11 @@ public class ClassAdapter extends RecyclerView.Adapter<ClassAdapter.ClassViewHol
         holder.txtClassName.setText(fclass.getAulan());
         holder.txtLocalName.setText(fclass.getLocaln());
         holder.txtDuration.setText(fclass.getDuracao());
-        FitHelper.classifyClass(fclass);
+        try {
+            FitHelper.classifyClass(fclass);
+        } catch (ParseException e) {
+            Toast.makeText(holder.itemView.getContext(), "Erro a obter horário da aula.", Toast.LENGTH_SHORT).show();
+        }
         FitHelper.tintClass(fclass, holder.tgBtnReserveClass);
 
         holder.tgBtnReserveClass.setOnCheckedChangeListener((compoundButton, isChecked) -> {
@@ -84,46 +92,61 @@ public class ClassAdapter extends RecyclerView.Adapter<ClassAdapter.ClassViewHol
     }
 
     private void checkClass(final ClassViewHolder holder, FitClass fitClass) {
-        FitnessDataService service = RetrofitInstance.getRetrofitInstance().create(FitnessDataService.class);
-        Calendar classDate = Calendar.getInstance();
-        try {
-            classDate.setTime(new SimpleDateFormat("yyyy-MM-dd|H:mm")
-                    .parse(fitClass.getDate().concat("|").concat(fitClass.getHorario())));
-        } catch (ParseException e) {
-            Toast.makeText(holder.itemView.getContext(), "Erro a obter horário da aula.", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        // checks if can reserve the class immediately or schedule the reservation
-        Calendar now = Calendar.getInstance();
-        Calendar classEnrollmentTime = Calendar.getInstance();
-        // get x hours before class - when the enrollment starts
-        classEnrollmentTime.add(Calendar.HOUR, -FitHelper.HOURS_BEFORE_RESERVATION);
-
-        // checks if current time is after x hours before class and the same day of class
-        if (now.compareTo(classEnrollmentTime) > 0
-                && classDate.get(Calendar.DAY_OF_MONTH) == now.get(Calendar.DAY_OF_MONTH)) {
-            if (fitClass.getVagas() > 0) {
-                // reserve the class
-                Observable<ArrayList<FitClassStatus>> call = service.bookClass(FitHelper.CLIENT_ID, fitClass.getId(),
-                        FitHelper.RESERVATION_PASSWORD);
-                call.subscribeOn(Schedulers.io())
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .subscribe(response -> {
-                                    fitClass.setClassState(ClassState.RESERVED);
-                                    FitHelper.tintClass(fitClass, holder.tgBtnReserveClass);
-                                    Toast.makeText(holder.itemView.getContext(), response.get(0).getStatus(), Toast.LENGTH_LONG).show();
-                                },
-                                err -> {
-                                    Toast.makeText(holder.itemView.getContext(), "Erro a reservar a aula.", Toast.LENGTH_LONG).show();
-                                }
-                        );
-            } else {
-                // keep trying until availability ?
-            }
-        } else {
+        // reserve the class
+        if (fitClass.getClassState() == ClassState.AVAILABLE) {
+            FitnessDataService service = RetrofitInstance.getRetrofitInstance().create(FitnessDataService.class);
+            Observable<ArrayList<FitClassStatus>> call = service.bookClass(FitHelper.CLIENT_ID, fitClass.getId(),
+                    FitHelper.RESERVATION_PASSWORD);
+            call.subscribeOn(Schedulers.io())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(response -> {
+                                fitClass.setClassState(ClassState.RESERVED);
+                                FitHelper.tintClass(fitClass, holder.tgBtnReserveClass);
+                                Toast.makeText(holder.itemView.getContext(), response.get(0).getStatus(), Toast.LENGTH_LONG).show();
+                            },
+                            err -> {
+                                Toast.makeText(holder.itemView.getContext(), "Erro a reservar a aula.", Toast.LENGTH_LONG).show();
+                            }
+                    );
+        } else if (fitClass.getClassState() == ClassState.SOLD_OUT) {
+            // keep trying until availability ?
+        } else if (fitClass.getClassState() == ClassState.UNAVAILABLE) {
             // schedule the enrollment
-//            AlarmManager manager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+            Calendar classEnrollmentTime = null;
+            try {
+                classEnrollmentTime = FitHelper.calculateEnrollmentClassDate(fitClass);
+            } catch (ParseException e) {
+                Toast.makeText(holder.itemView.getContext(), "Erro a obter horário da aula.", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            Intent scheduleIntent = new Intent(holder.itemView.getContext(), SchedulerReceiver.class);
+            scheduleIntent.setAction(FitHelper.SCHEDULE_INTENT_ACTION);
+            scheduleIntent.putExtra(FitHelper.COM_MAVIM_FITNESS_FIT_CLASS_ID, fitClass.getId());
+            PendingIntent pendingIntent = PendingIntent.getBroadcast(holder.itemView.getContext(), 0, scheduleIntent, 0);
+            AlarmManager manager = (AlarmManager) holder.itemView.getContext().getSystemService(Context.ALARM_SERVICE);
+            // set the schedule date and time
+            Calendar calendar = Calendar.getInstance();
+            calendar.setTimeInMillis(System.currentTimeMillis());
+            calendar.set(Calendar.HOUR_OF_DAY, calendar.get(Calendar.HOUR_OF_DAY));
+            calendar.set(Calendar.MINUTE, calendar.get(Calendar.HOUR_OF_DAY));
+            calendar.set(Calendar.SECOND, calendar.get(Calendar.SECOND) + 5);
+
+            // saves schedule class to the internal storage
+            boolean classSaved = FitHelper.saveScheduleClassToStorage(fitClass);
+            if (!classSaved) {
+                Toast.makeText(holder.itemView.getContext(), "Erro a agendar a aula.", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            // sets the schedule
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                // Wakes up the device in Doze Mode
+                manager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), pendingIntent);
+            } else {
+                // Wakes up the device in Idle Mode
+                manager.setExact(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), pendingIntent);
+            }
+
             fitClass.setClassState(ClassState.SCHEDULE);
             FitHelper.tintClass(fitClass, holder.tgBtnReserveClass);
         }
