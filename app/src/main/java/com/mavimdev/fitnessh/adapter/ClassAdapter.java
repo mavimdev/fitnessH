@@ -132,7 +132,7 @@ public class ClassAdapter extends RecyclerView.Adapter<ClassAdapter.ClassViewHol
             calendar.set(Calendar.SECOND, calendar.get(Calendar.SECOND) + 5);
 
             // saves schedule class to the internal storage
-            boolean classSaved = FitHelper.saveScheduleClassToStorage(fitClass);
+            boolean classSaved = FitHelper.saveScheduleClassToStorage(holder.itemView.getContext(), fitClass);
             if (!classSaved) {
                 Toast.makeText(holder.itemView.getContext(), "Erro a agendar a aula.", Toast.LENGTH_SHORT).show();
                 return;

@@ -1,7 +1,7 @@
 package com.mavimdev.fitnessh.util;
 
+import android.content.Context;
 import android.graphics.Color;
-import android.os.Environment;
 import android.util.Log;
 import android.widget.CompoundButton;
 
@@ -37,7 +37,7 @@ public class FitHelper {
     public static final long BOOK_REPEATING_TIME = 5 * 1000;
     public static final String SCHEDULE_INTENT_ACTION = "com.mavim.ACTION_SCHEDULE";
     public static final String COM_MAVIM_FITNESS_FIT_CLASS_ID = "com.mavim.fitnessH.fitClassId";
-    public static final String SCHEDULE_INFO_FILE_PATH = "/FitData/scheduleclasses.fit";
+    private static final String SCHEDULE_INFO_FILE = "scheduleclasses.fit";
 
 
     public static void classifyClass(FitClass fit) throws ParseException {
@@ -99,14 +99,13 @@ public class FitHelper {
         return classDate;
     }
 
-    public static boolean saveScheduleClassToStorage(FitClass fitClass) {
-        File fitFile = new File(Environment.getDataDirectory()
-                + SCHEDULE_INFO_FILE_PATH);
+    public static boolean saveScheduleClassToStorage(Context context, FitClass fitClass) {
+        File fitFile = new File(context.getFilesDir(), SCHEDULE_INFO_FILE);
 
         String fileContent = new String();
         // read the file if exists. if not, creates one.
         if (fitFile.exists()) {
-            try (FileInputStream fis = new FileInputStream(fitFile)) {
+            try (FileInputStream fis = context.openFileInput(SCHEDULE_INFO_FILE)) {
                 byte[] data = new byte[(int) fitFile.length()];
                 fis.read(data);
                 fileContent = new String(data, "UTF-8");
@@ -114,27 +113,22 @@ public class FitHelper {
                 Log.e(FitHelper.class.getSimpleName(), e.getMessage());
                 return false;
             }
-        } else {
-            fitFile.getParentFile().mkdirs();
-            try {
-                fitFile.createNewFile();
-            } catch (IOException e) {
-                Log.e(FitHelper.class.getSimpleName(), e.getMessage());
-                return false;
-            }
         }
+
         // converts the content of file to list object
         Gson gson = new GsonBuilder().create();
         List<ScheduleClasses> scheduleClasses =
                 gson.fromJson(fileContent, new TypeToken<List<ScheduleClasses>>() {}.getType());
+        if (scheduleClasses == null) {
+            scheduleClasses = new ArrayList<>();
+        }
         // adds the new schedule class if doesn't exists
         ScheduleClasses fClass = new ScheduleClasses(fitClass.getId(), fitClass.getDate());
-        if (!scheduleClasses.contains(fClass)) {
-            scheduleClasses.add(fClass);
-        }
+        scheduleClasses.add(fClass);
+
         // saves again the schedule classes on file
         String classesJson = gson.toJson(scheduleClasses, new TypeToken<List<ScheduleClasses>>() {}.getType());
-        try (FileOutputStream fos = new FileOutputStream(fitFile)) {
+        try (FileOutputStream fos = context.openFileOutput(SCHEDULE_INFO_FILE, Context.MODE_PRIVATE)) {
             fos.write(classesJson.getBytes());
         } catch (IOException e) {
             Log.e(FitHelper.class.getSimpleName(), e.getMessage());
