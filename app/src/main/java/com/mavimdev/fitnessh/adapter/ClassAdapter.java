@@ -9,9 +9,9 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.ToggleButton;
 
 import com.mavimdev.fitnessh.R;
 import com.mavimdev.fitnessh.model.FitClass;
@@ -21,6 +21,7 @@ import com.mavimdev.fitnessh.network.RetrofitInstance;
 import com.mavimdev.fitnessh.service.SchedulerReceiver;
 import com.mavimdev.fitnessh.util.ClassState;
 import com.mavimdev.fitnessh.util.FitHelper;
+import com.mavimdev.fitnessh.util.StorageHelper;
 
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -61,9 +62,10 @@ public class ClassAdapter extends RecyclerView.Adapter<ClassAdapter.ClassViewHol
         } catch (ParseException e) {
             Toast.makeText(holder.itemView.getContext(), "Erro a obter horário da aula.", Toast.LENGTH_SHORT).show();
         }
-        FitHelper.tintClass(fclass, holder.tgBtnReserveClass);
+        holder.swBtnReserveClass.setEnabled(true);
+        FitHelper.tintClass(fclass, holder.swBtnReserveClass);
 
-        holder.tgBtnReserveClass.setOnCheckedChangeListener((compoundButton, isChecked) -> {
+        holder.swBtnReserveClass.setOnCheckedChangeListener((compoundButton, isChecked) -> {
             if (isChecked) {
                 checkClass(holder, classesList.get(position));
             } else {
@@ -82,12 +84,28 @@ public class ClassAdapter extends RecyclerView.Adapter<ClassAdapter.ClassViewHol
                     .subscribe(response -> {
                                 fitClass.setClassState(null);
                                 FitHelper.classifyClass(fitClass);
-                                FitHelper.tintClass(fitClass, holder.tgBtnReserveClass);
+                                FitHelper.tintClass(fitClass, holder.swBtnReserveClass);
                                 Toast.makeText(holder.itemView.getContext(), "Reserva cancelada.", Toast.LENGTH_LONG).show();
                             }, err -> {
                                 Toast.makeText(holder.itemView.getContext(), "Erro a cancelar reserva.", Toast.LENGTH_LONG).show();
                             }
                     );
+        } else if (fitClass.getClassState() == ClassState.SCHEDULE) {
+            // remove schedule (alarm manager)
+            AlarmManager manager = (AlarmManager) holder.itemView.getContext().getSystemService(Context.ALARM_SERVICE);
+            PendingIntent pendingIntent = PendingIntent.getBroadcast(holder.itemView.getContext(), Integer.parseInt(fitClass.getId()),
+                    new Intent(holder.itemView.getContext(), SchedulerReceiver.class), 0);
+            manager.cancel(pendingIntent);
+            // remove from storage
+            StorageHelper.removeScheduleClass(holder.itemView.getContext(), fitClass.getId());
+            fitClass.setClassState(null);
+            try {
+                FitHelper.classifyClass(fitClass);
+            } catch (ParseException e) {
+                Toast.makeText(holder.itemView.getContext(), "Erro: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+            FitHelper.tintClass(fitClass, holder.swBtnReserveClass);
+            Toast.makeText(holder.itemView.getContext(), "Agendamento cancelado.", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -101,7 +119,7 @@ public class ClassAdapter extends RecyclerView.Adapter<ClassAdapter.ClassViewHol
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(response -> {
                                 fitClass.setClassState(ClassState.RESERVED);
-                                FitHelper.tintClass(fitClass, holder.tgBtnReserveClass);
+                                FitHelper.tintClass(fitClass, holder.swBtnReserveClass);
                                 Toast.makeText(holder.itemView.getContext(), response.get(0).getStatus(), Toast.LENGTH_LONG).show();
                             },
                             err -> {
@@ -112,9 +130,9 @@ public class ClassAdapter extends RecyclerView.Adapter<ClassAdapter.ClassViewHol
             // keep trying until availability ?
         } else if (fitClass.getClassState() == ClassState.UNAVAILABLE) {
             // schedule the enrollment
-            Calendar classEnrollmentTime = null;
+            Calendar classEnrollmentDate;
             try {
-                classEnrollmentTime = FitHelper.calculateEnrollmentClassDate(fitClass);
+                classEnrollmentDate = FitHelper.calculateEnrollmentClassDate(fitClass);
             } catch (ParseException e) {
                 Toast.makeText(holder.itemView.getContext(), "Erro a obter horário da aula.", Toast.LENGTH_SHORT).show();
                 return;
@@ -122,17 +140,12 @@ public class ClassAdapter extends RecyclerView.Adapter<ClassAdapter.ClassViewHol
             Intent scheduleIntent = new Intent(holder.itemView.getContext(), SchedulerReceiver.class);
             scheduleIntent.setAction(FitHelper.SCHEDULE_INTENT_ACTION);
             scheduleIntent.putExtra(FitHelper.COM_MAVIM_FITNESS_FIT_CLASS_ID, fitClass.getId());
-            PendingIntent pendingIntent = PendingIntent.getBroadcast(holder.itemView.getContext(), 0, scheduleIntent, 0);
+            PendingIntent pendingIntent = PendingIntent.getBroadcast(holder.itemView.getContext(), Integer.parseInt(fitClass.getId()), scheduleIntent, 0);
+
             AlarmManager manager = (AlarmManager) holder.itemView.getContext().getSystemService(Context.ALARM_SERVICE);
-            // set the schedule date and time
-            Calendar calendar = Calendar.getInstance();
-            calendar.setTimeInMillis(System.currentTimeMillis());
-            calendar.set(Calendar.HOUR_OF_DAY, calendar.get(Calendar.HOUR_OF_DAY));
-            calendar.set(Calendar.MINUTE, calendar.get(Calendar.HOUR_OF_DAY));
-            calendar.set(Calendar.SECOND, calendar.get(Calendar.SECOND) + 5);
 
             // saves schedule class to the internal storage
-            boolean classSaved = FitHelper.saveScheduleClassToStorage(holder.itemView.getContext(), fitClass);
+            boolean classSaved = StorageHelper.addScheduleClass(holder.itemView.getContext(), fitClass);
             if (!classSaved) {
                 Toast.makeText(holder.itemView.getContext(), "Erro a agendar a aula.", Toast.LENGTH_SHORT).show();
                 return;
@@ -141,14 +154,14 @@ public class ClassAdapter extends RecyclerView.Adapter<ClassAdapter.ClassViewHol
             // sets the schedule
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 // Wakes up the device in Doze Mode
-                manager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), pendingIntent);
+                manager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, classEnrollmentDate.getTimeInMillis(), pendingIntent);
             } else {
                 // Wakes up the device in Idle Mode
-                manager.setExact(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), pendingIntent);
+                manager.setExact(AlarmManager.RTC_WAKEUP, classEnrollmentDate.getTimeInMillis(), pendingIntent);
             }
 
             fitClass.setClassState(ClassState.SCHEDULE);
-            FitHelper.tintClass(fitClass, holder.tgBtnReserveClass);
+            FitHelper.tintClass(fitClass, holder.swBtnReserveClass);
         }
 
     }
@@ -164,7 +177,7 @@ public class ClassAdapter extends RecyclerView.Adapter<ClassAdapter.ClassViewHol
     public class ClassViewHolder extends RecyclerView.ViewHolder {
 
         TextView txtSchedule, txtClassName, txtLocalName, txtDuration;
-        ToggleButton tgBtnReserveClass;
+        Switch swBtnReserveClass;
 
         public ClassViewHolder(View itemView) {
             super(itemView);
@@ -172,7 +185,7 @@ public class ClassAdapter extends RecyclerView.Adapter<ClassAdapter.ClassViewHol
             txtClassName = itemView.findViewById(R.id.txt_class_name);
             txtLocalName = itemView.findViewById(R.id.txt_local_name);
             txtDuration = itemView.findViewById(R.id.txt_duration);
-            tgBtnReserveClass = itemView.findViewById(R.id.tg_btn_reserve_class);
+            swBtnReserveClass = itemView.findViewById(R.id.sw_btn_reserve_class);
         }
     }
 }

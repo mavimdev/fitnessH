@@ -8,8 +8,8 @@ import android.widget.Toast;
 import com.mavimdev.fitnessh.model.FitClassStatus;
 import com.mavimdev.fitnessh.network.FitnessDataService;
 import com.mavimdev.fitnessh.network.RetrofitInstance;
-import com.mavimdev.fitnessh.util.ClassState;
 import com.mavimdev.fitnessh.util.FitHelper;
+import com.mavimdev.fitnessh.util.StorageHelper;
 
 import java.security.InvalidParameterException;
 import java.util.ArrayList;
@@ -41,6 +41,8 @@ public class SchedulerReceiver extends BroadcastReceiver {
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(response -> {
                             Toast.makeText(context, response.get(0).getStatus(), Toast.LENGTH_LONG).show();
+                            // remove schedule class from storage
+                            StorageHelper.removeScheduleClass(context, fitClassId);
                         },
                         err -> {
                             Toast.makeText(context, "Erro a reservar a aula.", Toast.LENGTH_LONG).show();

@@ -38,8 +38,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
 
-        <ToggleButton
-            android:id="@+id/tg_btn_reserve_class"
+        <Switch
+            android:id="@+id/sw_btn_reserve_class"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_centerHorizontal="true"

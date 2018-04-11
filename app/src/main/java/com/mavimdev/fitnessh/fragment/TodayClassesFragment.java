@@ -13,11 +13,14 @@ import android.widget.Toast;
 import com.mavimdev.fitnessh.R;
 import com.mavimdev.fitnessh.adapter.ClassAdapter;
 import com.mavimdev.fitnessh.model.FitClass;
+import com.mavimdev.fitnessh.model.ScheduleClasses;
 import com.mavimdev.fitnessh.network.FitnessDataService;
 import com.mavimdev.fitnessh.network.RetrofitInstance;
 import com.mavimdev.fitnessh.util.FitHelper;
+import com.mavimdev.fitnessh.util.StorageHelper;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
@@ -55,11 +58,13 @@ public class TodayClassesFragment extends Fragment {
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(todayClasses ->
                         {
+                            List<ScheduleClasses> scheduleClasses = StorageHelper.loadScheduleClasses(getContext());
+
                             for (FitClass fit : todayClasses) {
                                 fit.setCtitle(FitHelper.FITNESS_HUT_CLUB_TITLE);
                                 // TODO MAvim : get actual club -----^
-                                FitHelper.checkIfReserved(fit, reservedClassesAux);
-                                // TODO MAvim : check if schedule
+                                FitHelper.markIfReserved(fit, reservedClassesAux);
+                                FitHelper.markIfSchedule(fit, scheduleClasses);
                             }
                             ClassAdapter adapter = new ClassAdapter(todayClasses);
                             recyclerView.setAdapter(adapter);

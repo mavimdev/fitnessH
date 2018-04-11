@@ -13,18 +13,18 @@ import android.widget.Toast;
 import com.mavimdev.fitnessh.R;
 import com.mavimdev.fitnessh.adapter.ClassAdapter;
 import com.mavimdev.fitnessh.model.FitClass;
+import com.mavimdev.fitnessh.model.ScheduleClasses;
 import com.mavimdev.fitnessh.network.FitnessDataService;
 import com.mavimdev.fitnessh.network.RetrofitInstance;
+import com.mavimdev.fitnessh.util.FitHelper;
+import com.mavimdev.fitnessh.util.StorageHelper;
 
 import java.util.ArrayList;
-
+import java.util.List;
 
 import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
 
 
 /**
@@ -50,8 +50,13 @@ public class TomorrowClassesFragment extends Fragment {
         Observable<ArrayList<FitClass>> call = service.getTomorrowClasses(TRINDADE_FITNESS_HUT, PACK_FITNESS_HUT);
         call.subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(response -> {
-                            ClassAdapter adapter = new ClassAdapter(response);
+                .subscribe(tomorrowClasses -> {
+                            List<ScheduleClasses> scheduleClasses = StorageHelper.loadScheduleClasses(getContext());
+
+                            for (FitClass fit : tomorrowClasses) {
+                                FitHelper.markIfSchedule(fit, scheduleClasses);
+                            }
+                            ClassAdapter adapter = new ClassAdapter(tomorrowClasses);
                             recyclerView.setAdapter(adapter);
                         }, err ->
                                 Toast.makeText(TomorrowClassesFragment.this.getContext(), "Something went wrong...Please try later!", Toast.LENGTH_SHORT).show()

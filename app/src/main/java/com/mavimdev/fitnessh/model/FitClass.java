@@ -62,6 +62,9 @@ public class FitClass {
     // class status
     private ClassState classState;
 
+    public FitClass() {
+    }
+
     public FitClass(String id, String date, String horario, String duracao, String local, String localn, String aulan, String aulal, String aulad, String aulapp, String aulatm, String aulars, String profn, String profp, Integer vagas, String moveweek) {
         this.id = id;
         this.date = date;

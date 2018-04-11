@@ -1,20 +1,11 @@
 package com.mavimdev.fitnessh.util;
 
-import android.content.Context;
 import android.graphics.Color;
-import android.util.Log;
 import android.widget.CompoundButton;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.reflect.TypeToken;
 import com.mavimdev.fitnessh.model.FitClass;
 import com.mavimdev.fitnessh.model.ScheduleClasses;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -37,7 +28,7 @@ public class FitHelper {
     public static final long BOOK_REPEATING_TIME = 5 * 1000;
     public static final String SCHEDULE_INTENT_ACTION = "com.mavim.ACTION_SCHEDULE";
     public static final String COM_MAVIM_FITNESS_FIT_CLASS_ID = "com.mavim.fitnessH.fitClassId";
-    private static final String SCHEDULE_INFO_FILE = "scheduleclasses.fit";
+    public static final String SCHEDULE_INFO_FILE = "scheduleclasses.fit";
 
 
     public static void classifyClass(FitClass fit) throws ParseException {
@@ -46,14 +37,16 @@ public class FitHelper {
         Calendar classDate = Calendar.getInstance();
         classDate.setTime(new SimpleDateFormat("yyyy-MM-dd|H:mm")
                 .parse(fit.getDate().concat("|").concat(fit.getHorario())));
+        Calendar afterReservationHours = Calendar.getInstance();
+        afterReservationHours.add(Calendar.HOUR_OF_DAY, HOURS_BEFORE_RESERVATION);
 
-        if (fit.getClassState() != ClassState.RESERVED) {
+        if (fit.getClassState() != ClassState.RESERVED && fit.getClassState() != ClassState.SCHEDULE) {
             if (now.after(classDate)) {
                 fit.setClassState(ClassState.EXPIRED);
             } else if (classDate.get(Calendar.DAY_OF_MONTH) == now.get(Calendar.DAY_OF_MONTH)) {
                 if (fit.getVagas() > 0) {
                     fit.setClassState(ClassState.AVAILABLE);
-                } else {
+                } else if (classDate.before(afterReservationHours)) {
                     fit.setClassState(ClassState.SOLD_OUT);
                 }
             } else if (classDate.get(Calendar.DAY_OF_MONTH) > now.get(Calendar.DAY_OF_MONTH)) {
@@ -62,33 +55,32 @@ public class FitHelper {
         }
     }
 
-    public static boolean checkIfReserved(FitClass fit, ArrayList<FitClass> reservedClasses) {
-        for (FitClass rfit : reservedClasses) {
-            if (rfit.equals(fit)) {
-                fit.setClassState(ClassState.RESERVED);
-                fit.setAid(rfit.getId());
-                return true;
-            }
+
+    public static void tintClass(FitClass fclass, CompoundButton swBtnReserveClass) {
+        if (fclass.getClassState() == ClassState.AVAILABLE) {
+            swBtnReserveClass.setTextColor(Color.GREEN);
+            swBtnReserveClass.setText("DISPONIVEL");
+        } else if (fclass.getClassState() == ClassState.RESERVED) {
+            swBtnReserveClass.setTextColor(Color.BLUE);
+            swBtnReserveClass.setText("RESERVADA");
+            swBtnReserveClass.setChecked(true);
+        } else if (fclass.getClassState() == ClassState.SCHEDULE) {
+            swBtnReserveClass.setTextColor(Color.YELLOW);
+            swBtnReserveClass.setText("AGENDADA");
+            swBtnReserveClass.setChecked(true);
+        } else if (fclass.getClassState() == ClassState.EXPIRED) {
+            swBtnReserveClass.setTextColor(Color.GRAY);
+            swBtnReserveClass.setText("EXPIRADA");
+            swBtnReserveClass.setEnabled(false);
+        } else if (fclass.getClassState() == ClassState.SOLD_OUT) {
+            swBtnReserveClass.setTextColor(Color.RED);
+            swBtnReserveClass.setText("ESGOTADA");
+        } else if (fclass.getClassState() == ClassState.UNAVAILABLE) {
+            swBtnReserveClass.setTextColor(Color.GRAY);
+            swBtnReserveClass.setText("INDISPONIVEL");
         }
-        return false;
     }
 
-    public static void tintClass(FitClass fclass, CompoundButton tgBtnReserveClass) {
-        if (fclass.getClassState() == ClassState.RESERVED) {
-            tgBtnReserveClass.setTextColor(Color.GREEN);
-            tgBtnReserveClass.setText("RESERVADA");
-        } else if (fclass.getClassState() == ClassState.EXPIRED) {
-            tgBtnReserveClass.setTextColor(Color.GRAY);
-            tgBtnReserveClass.setText("EXPIRADA");
-            tgBtnReserveClass.setEnabled(false);
-        } else if (fclass.getClassState() == ClassState.SOLD_OUT) {
-            tgBtnReserveClass.setTextColor(Color.RED);
-            tgBtnReserveClass.setText("ESGOTADA");
-        } else if (fclass.getClassState() == ClassState.UNAVAILABLE) {
-            tgBtnReserveClass.setTextColor(Color.GRAY);
-            tgBtnReserveClass.setText("INDISPONIVEL");
-        }
-    }
 
     public static Calendar calculateEnrollmentClassDate(FitClass fitClass) throws ParseException {
         Calendar classDate = Calendar.getInstance();
@@ -99,42 +91,26 @@ public class FitHelper {
         return classDate;
     }
 
-    public static boolean saveScheduleClassToStorage(Context context, FitClass fitClass) {
-        File fitFile = new File(context.getFilesDir(), SCHEDULE_INFO_FILE);
 
-        String fileContent = new String();
-        // read the file if exists. if not, creates one.
-        if (fitFile.exists()) {
-            try (FileInputStream fis = context.openFileInput(SCHEDULE_INFO_FILE)) {
-                byte[] data = new byte[(int) fitFile.length()];
-                fis.read(data);
-                fileContent = new String(data, "UTF-8");
-            } catch (IOException e) {
-                Log.e(FitHelper.class.getSimpleName(), e.getMessage());
-                return false;
+    public static boolean markIfReserved(FitClass fit, ArrayList<FitClass> reservedClasses) {
+        for (FitClass rfit : reservedClasses) {
+            if (rfit.equals(fit)) {
+                fit.setClassState(ClassState.RESERVED);
+                fit.setAid(rfit.getId());
+                return true;
             }
         }
+        return false;
+    }
 
-        // converts the content of file to list object
-        Gson gson = new GsonBuilder().create();
-        List<ScheduleClasses> scheduleClasses =
-                gson.fromJson(fileContent, new TypeToken<List<ScheduleClasses>>() {}.getType());
-        if (scheduleClasses == null) {
-            scheduleClasses = new ArrayList<>();
+
+    public static boolean markIfSchedule(FitClass fit, List<ScheduleClasses> scheduleClasses) {
+        for (ScheduleClasses sfit : scheduleClasses) {
+            if (sfit.getId().equals(fit.getId())) {
+                fit.setClassState(ClassState.SCHEDULE);
+                return true;
+            }
         }
-        // adds the new schedule class if doesn't exists
-        ScheduleClasses fClass = new ScheduleClasses(fitClass.getId(), fitClass.getDate());
-        scheduleClasses.add(fClass);
-
-        // saves again the schedule classes on file
-        String classesJson = gson.toJson(scheduleClasses, new TypeToken<List<ScheduleClasses>>() {}.getType());
-        try (FileOutputStream fos = context.openFileOutput(SCHEDULE_INFO_FILE, Context.MODE_PRIVATE)) {
-            fos.write(classesJson.getBytes());
-        } catch (IOException e) {
-            Log.e(FitHelper.class.getSimpleName(), e.getMessage());
-            return false;
-        }
-
-        return true;
+        return false;
     }
 }
