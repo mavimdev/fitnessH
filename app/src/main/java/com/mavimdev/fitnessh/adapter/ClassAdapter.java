@@ -53,7 +53,8 @@ public class ClassAdapter extends RecyclerView.Adapter<ClassAdapter.ClassViewHol
     @Override
     public void onBindViewHolder(final ClassViewHolder holder, final int position) {
         FitClass fclass = classesList.get(position);
-        holder.txtSchedule.setText(fclass.getHorario());
+        holder.txtSchedule.setText(fclass.getHorario() != null ?
+                fclass.getHorario() : fclass.getMdata() + " - " + fclass.getMhorario());
         holder.txtClassName.setText(fclass.getAulan());
         holder.txtLocalName.setText(fclass.getLocaln());
         holder.txtDuration.setText(fclass.getDuracao());
@@ -66,14 +67,14 @@ public class ClassAdapter extends RecyclerView.Adapter<ClassAdapter.ClassViewHol
         FitHelper.tintClass(fclass, holder.swBtnReserveClass);
 
         holder.swBtnReserveClass.setOnCheckedChangeListener((compoundButton, isChecked) -> {
-            if (isChecked) {
+            if (isChecked && compoundButton.isPressed()) {
                 checkClass(holder, classesList.get(position));
-            } else {
+            } else if (compoundButton.isPressed()) {
                 uncheckClass(holder, classesList.get(position));
             }
         });
-
     }
+
 
     private void uncheckClass(final ClassViewHolder holder, FitClass fitClass) {
         if (fitClass.getClassState() == ClassState.RESERVED) {
@@ -128,6 +129,7 @@ public class ClassAdapter extends RecyclerView.Adapter<ClassAdapter.ClassViewHol
                     );
         } else if (fitClass.getClassState() == ClassState.SOLD_OUT) {
             // keep trying until availability ?
+            Toast.makeText(holder.itemView.getContext(), "Opção de aguardar vaga não implementada.", Toast.LENGTH_SHORT).show();
         } else if (fitClass.getClassState() == ClassState.UNAVAILABLE) {
             // schedule the enrollment
             Calendar classEnrollmentDate;
@@ -161,9 +163,8 @@ public class ClassAdapter extends RecyclerView.Adapter<ClassAdapter.ClassViewHol
             }
 
             fitClass.setClassState(ClassState.SCHEDULE);
-            FitHelper.tintClass(fitClass, holder.swBtnReserveClass);
         }
-
+        FitHelper.tintClass(fitClass, holder.swBtnReserveClass);
     }
 
     @Override

@@ -13,7 +13,6 @@ import android.widget.Toast;
 import com.mavimdev.fitnessh.R;
 import com.mavimdev.fitnessh.adapter.ClassAdapter;
 import com.mavimdev.fitnessh.model.FitClass;
-import com.mavimdev.fitnessh.model.ScheduleClasses;
 import com.mavimdev.fitnessh.network.FitnessDataService;
 import com.mavimdev.fitnessh.network.RetrofitInstance;
 import com.mavimdev.fitnessh.util.FitHelper;
@@ -30,7 +29,10 @@ import io.reactivex.schedulers.Schedulers;
 /**
  * A simple {@link Fragment} subclass.
  */
-public class TodayClassesFragment extends Fragment {
+public class TodayClassesFragment extends Fragment implements ReloadDataInterface {
+
+    private UpdateDataInterface updateData;
+    private RecyclerView recyclerView = null;
 
     public TodayClassesFragment() {
         // Required empty public constructor
@@ -39,9 +41,19 @@ public class TodayClassesFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        final RecyclerView recyclerView = (RecyclerView) inflater.inflate(
+        recyclerView = (RecyclerView) inflater.inflate(
                 R.layout.recycler_view, container, false);
 
+        this.reloadData();
+
+        recyclerView.setHasFixedSize(true);
+        recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
+        return recyclerView;
+    }
+
+
+    @Override
+    public void reloadData() {
         ArrayList<FitClass> reservedClassesAux = new ArrayList<>();
 
         /*Create handle for the RetrofitInstance interface*/
@@ -58,7 +70,7 @@ public class TodayClassesFragment extends Fragment {
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(todayClasses ->
                         {
-                            List<ScheduleClasses> scheduleClasses = StorageHelper.loadScheduleClasses(getContext());
+                            List<FitClass> scheduleClasses = StorageHelper.loadScheduleClasses(getContext());
 
                             for (FitClass fit : todayClasses) {
                                 fit.setCtitle(FitHelper.FITNESS_HUT_CLUB_TITLE);
@@ -71,11 +83,13 @@ public class TodayClassesFragment extends Fragment {
                         },
                         err -> Toast.makeText(TodayClassesFragment.this.getContext(), "Something went wrong...Please try later!", Toast.LENGTH_SHORT).show()
                 );
-
-        recyclerView.setHasFixedSize(true);
-        recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
-        return recyclerView;
     }
 
+    public UpdateDataInterface getUpdateData() {
+        return updateData;
+    }
 
+    public void setUpdateData(UpdateDataInterface updateData) {
+        this.updateData = updateData;
+    }
 }

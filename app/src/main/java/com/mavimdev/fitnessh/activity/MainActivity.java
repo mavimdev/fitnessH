@@ -9,16 +9,22 @@ import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 
-import com.mavimdev.fitnessh.fragment.TodayClassesFragment;
 import com.mavimdev.fitnessh.R;
+import com.mavimdev.fitnessh.fragment.ReloadDataInterface;
 import com.mavimdev.fitnessh.fragment.ReservedClassesFragment;
+import com.mavimdev.fitnessh.fragment.TodayClassesFragment;
 import com.mavimdev.fitnessh.fragment.TomorrowClassesFragment;
+import com.mavimdev.fitnessh.fragment.UpdateDataInterface;
 
 import java.util.ArrayList;
 import java.util.List;
 
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements UpdateDataInterface {
+    static final int TODAY_CLASSES_TAB = 1;
+    static final int TOMORROW_CLASSES_TAB = 2;
+    static final int RESERVED_CLASSES_TAB = 3;
+    Adapter adapter = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,11 +43,45 @@ public class MainActivity extends AppCompatActivity {
 
     // Add Fragments to Tabs
     private void setupViewPager(ViewPager viewPager) {
-        Adapter adapter = new Adapter(getSupportFragmentManager());
-        adapter.addFragment(new TodayClassesFragment(), getString(R.string.today));
-        adapter.addFragment(new TomorrowClassesFragment(), getString(R.string.tomorrow));
-        adapter.addFragment(new ReservedClassesFragment(), getString(R.string.reservation));
+        adapter = new Adapter(getSupportFragmentManager());
+
+        TodayClassesFragment todayClassesFragment = new TodayClassesFragment();
+        todayClassesFragment.setUpdateData(this);
+        adapter.addFragment(todayClassesFragment, getString(R.string.today));
+
+        TomorrowClassesFragment tomorrowClassesFragment = new TomorrowClassesFragment();
+        tomorrowClassesFragment.setUpdateData(this);
+        adapter.addFragment(tomorrowClassesFragment, getString(R.string.tomorrow));
+
+        ReservedClassesFragment reservedClassesFragment = new ReservedClassesFragment();
+        reservedClassesFragment.setUpdateData(this);
+        adapter.addFragment(reservedClassesFragment, getString(R.string.reservation)  );
         viewPager.setAdapter(adapter);
+    }
+
+
+    @Override
+    public void updateTodayData() {
+        if (adapter != null) {
+            ReloadDataInterface requestFragment = (ReloadDataInterface) adapter.getItem(TODAY_CLASSES_TAB);
+            requestFragment.reloadData();
+        }
+    }
+
+    @Override
+    public void updateTomorrowData() {
+        if (adapter != null) {
+            ReloadDataInterface requestFragment = (ReloadDataInterface) adapter.getItem(TOMORROW_CLASSES_TAB);
+            requestFragment.reloadData();
+        }
+    }
+
+    @Override
+    public void updateReservedData() {
+        if (adapter != null) {
+            ReloadDataInterface requestFragment = (ReloadDataInterface) adapter.getItem(RESERVED_CLASSES_TAB);
+            requestFragment.reloadData();
+        }
     }
 
     /**

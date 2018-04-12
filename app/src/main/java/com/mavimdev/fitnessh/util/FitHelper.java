@@ -4,7 +4,6 @@ import android.graphics.Color;
 import android.widget.CompoundButton;
 
 import com.mavimdev.fitnessh.model.FitClass;
-import com.mavimdev.fitnessh.model.ScheduleClasses;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -21,7 +20,8 @@ public class FitHelper {
     public final static String RESERVATION_PASSWORD = "e94b10f0da8d42095ca5c20927416de5";
 
     // user details - organize this
-    public static final String FITNESS_HUT_CLUB_ID = "30";
+    public static final String FITNESS_HUT_CLUB_ID = "30"; // antas
+//    public static final String FITNESS_HUT_CLUB_ID = "4"; // trindade
     public static final String FITNESS_HUT_CLUB_TITLE = "Antas";
     public static final String PACK_FITNESS_HUT = "FOU__N__";
     public static final String CLIENT_ID = "216053";
@@ -35,8 +35,17 @@ public class FitHelper {
         // check state of class
         Calendar now = Calendar.getInstance();
         Calendar classDate = Calendar.getInstance();
-        classDate.setTime(new SimpleDateFormat("yyyy-MM-dd|H:mm")
-                .parse(fit.getDate().concat("|").concat(fit.getHorario())));
+
+        SimpleDateFormat dateFormat;
+
+        if (ClassState.RESERVED.equals(fit.getClassState()) && fit.getMdata() != null) {
+            dateFormat = new SimpleDateFormat("d MMM|H:mm");
+            classDate.setTime(dateFormat.parse(fit.getMdata().concat("|").concat(fit.getMhorario())));
+        } else {
+            dateFormat = new SimpleDateFormat("yyyy-MM-dd|H:mm");
+            classDate.setTime(dateFormat.parse(fit.getDate().concat("|").concat(fit.getHorario())));
+        }
+
         Calendar afterReservationHours = Calendar.getInstance();
         afterReservationHours.add(Calendar.HOUR_OF_DAY, HOURS_BEFORE_RESERVATION);
 
@@ -60,6 +69,7 @@ public class FitHelper {
         if (fclass.getClassState() == ClassState.AVAILABLE) {
             swBtnReserveClass.setTextColor(Color.GREEN);
             swBtnReserveClass.setText("DISPONIVEL");
+            swBtnReserveClass.setChecked(false);
         } else if (fclass.getClassState() == ClassState.RESERVED) {
             swBtnReserveClass.setTextColor(Color.BLUE);
             swBtnReserveClass.setText("RESERVADA");
@@ -71,13 +81,16 @@ public class FitHelper {
         } else if (fclass.getClassState() == ClassState.EXPIRED) {
             swBtnReserveClass.setTextColor(Color.GRAY);
             swBtnReserveClass.setText("EXPIRADA");
+            swBtnReserveClass.setChecked(false);
             swBtnReserveClass.setEnabled(false);
         } else if (fclass.getClassState() == ClassState.SOLD_OUT) {
             swBtnReserveClass.setTextColor(Color.RED);
             swBtnReserveClass.setText("ESGOTADA");
+            swBtnReserveClass.setChecked(false);
         } else if (fclass.getClassState() == ClassState.UNAVAILABLE) {
             swBtnReserveClass.setTextColor(Color.GRAY);
             swBtnReserveClass.setText("INDISPONIVEL");
+            swBtnReserveClass.setChecked(false);
         }
     }
 
@@ -104,8 +117,8 @@ public class FitHelper {
     }
 
 
-    public static boolean markIfSchedule(FitClass fit, List<ScheduleClasses> scheduleClasses) {
-        for (ScheduleClasses sfit : scheduleClasses) {
+    public static boolean markIfSchedule(FitClass fit, List<FitClass> scheduleClasses) {
+        for (FitClass sfit : scheduleClasses) {
             if (sfit.getId().equals(fit.getId())) {
                 fit.setClassState(ClassState.SCHEDULE);
                 return true;
