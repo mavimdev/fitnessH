@@ -2,9 +2,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.mavimdev.fitnessh">
 
-    <!--Internet Permission-->
+    <!-- Internet Permission -->
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
     <application
         android:allowBackup="true"
@@ -13,7 +13,8 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".activity.MainActivity"
+        <activity
+            android:name=".activity.MainActivity"
             android:label="@string/app_name">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -22,20 +23,25 @@
             </intent-filter>
         </activity>
 
-        <receiver android:name="com.mavimdev.fitnessh.service.DeviceBootReceiver"
+        <receiver
+            android:name=".service.DeviceBootReceiver"
             android:enabled="false">
             <intent-filter>
-                <action android:name="android.intent.action.BOOT_COMPLETED"/>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
             </intent-filter>
         </receiver>
-
-        <receiver android:name="com.mavimdev.fitnessh.service.SchedulerReceiver"
+        <receiver
+            android:name=".service.SchedulerReceiver"
             android:enabled="true">
             <intent-filter>
-                <action android:name="com.mavimdev.fitnessh.adapter.ClassAdapter"></action>
+                <action android:name="com.mavimdev.fitnessh.adapter.ClassAdapter" />
             </intent-filter>
         </receiver>
 
+        <activity
+            android:name=".activity.LoginActivity"
+            android:label="@string/title_activity_login"
+            android:theme="@style/AppTheme"></activity>
     </application>
 
 </manifest>

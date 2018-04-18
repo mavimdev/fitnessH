@@ -2,12 +2,14 @@ package com.mavimdev.fitnessh.network;
 
 import com.mavimdev.fitnessh.model.FitClass;
 import com.mavimdev.fitnessh.model.FitClassStatus;
+import com.mavimdev.fitnessh.model.FitClube;
 
 import java.util.ArrayList;
 
 import io.reactivex.Observable;
 import retrofit2.http.Field;
 import retrofit2.http.FormUrlEncoded;
+import retrofit2.http.GET;
 import retrofit2.http.POST;
 
 /**
@@ -38,5 +40,8 @@ public interface FitnessDataService {
     @FormUrlEncoded
     @POST("aulas-cancelar-json.php")
     Observable<ArrayList<FitClassStatus>> unbookClass(@Field("aid") String classId);
+
+    @GET("club-list-json.php")
+    Observable<ArrayList<FitClube>> getClubList();
 
 }

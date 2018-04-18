@@ -18,17 +18,22 @@ import java.util.List;
 public class FitHelper {
     public final static int HOURS_BEFORE_RESERVATION = 10;
     public final static String RESERVATION_PASSWORD = "e94b10f0da8d42095ca5c20927416de5";
+    public static final String SP_FAVORITE_CLUB_ID = "SP_FAVORITE_CLUB_ID";
+    public static final String SP_CLIENT_ID = "SP_CLIENT_ID";
 
     // user details - organize this
-    public static final String FITNESS_HUT_CLUB_ID = "30"; // antas
-//    public static final String FITNESS_HUT_CLUB_ID = "4"; // trindade
-    public static final String FITNESS_HUT_CLUB_TITLE = "Antas";
-    public static final String PACK_FITNESS_HUT = "FOU__N__";
-    public static final String CLIENT_ID = "216053";
-    public static final long BOOK_REPEATING_TIME = 5 * 1000;
+    public static String FITNESS_HUT_CLUB_ID;
+    public static String FITNESS_HUT_CLUB_TITLE;
+    public static  String PACK_FITNESS_HUT = "FOU__N__";
+    public static  String CLIENT_ID;
+
     public static final String SCHEDULE_INTENT_ACTION = "com.mavim.ACTION_SCHEDULE";
     public static final String COM_MAVIM_FITNESS_FIT_CLASS_ID = "com.mavim.fitnessH.fitClassId";
     public static final String SCHEDULE_INFO_FILE = "scheduleclasses.fit";
+    public static final String CLASS_NOT_AVAILABLE = "NÃO PODE RESERVAR A AULA! AULA INDISPONÍVEL.";
+    public static final String CLASS_RESERVED = "AULA RESERVADA.";
+    public static final int MAX_ATTEMPTS = 15;
+    public static final int ATTEMPTS_SECONDS_REPEAT = 7;
 
 
     public static void classifyClass(FitClass fit) throws ParseException {
@@ -57,6 +62,8 @@ public class FitHelper {
                     fit.setClassState(ClassState.AVAILABLE);
                 } else if (classDate.before(afterReservationHours)) {
                     fit.setClassState(ClassState.SOLD_OUT);
+                } else {
+                    fit.setClassState(ClassState.UNAVAILABLE);
                 }
             } else if (classDate.get(Calendar.DAY_OF_MONTH) > now.get(Calendar.DAY_OF_MONTH)) {
                 fit.setClassState(ClassState.UNAVAILABLE);

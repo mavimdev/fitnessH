@@ -1,6 +1,7 @@
 package com.mavimdev.fitnessh.fragment;
 
 
+import android.annotation.SuppressLint;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
@@ -29,9 +30,9 @@ import io.reactivex.schedulers.Schedulers;
 /**
  * A simple {@link Fragment} subclass.
  */
-public class TomorrowClassesFragment extends Fragment implements ReloadDataInterface {
+public class TomorrowClassesFragment extends Fragment implements UpdateClassesInterface {
 
-    private UpdateDataInterface updateData;
+    private UpdateDataInterface mainActivityClasses;
     private RecyclerView recyclerView = null;
 
     public TomorrowClassesFragment() {
@@ -44,15 +45,15 @@ public class TomorrowClassesFragment extends Fragment implements ReloadDataInter
         recyclerView = (RecyclerView) inflater.inflate(
                 R.layout.recycler_view, container, false);
 
-        this.reloadData();
+        this.loadData();
 
         recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
         return recyclerView;
     }
 
-    @Override
-    public void reloadData() {
+    @SuppressLint("CheckResult")
+    public void loadData() {
         /*Create handle for the RetrofitInstance interface*/
         FitnessDataService service = RetrofitInstance.getRetrofitInstance().create(FitnessDataService.class);
         /*Call the method to get the classes data*/
@@ -66,18 +67,29 @@ public class TomorrowClassesFragment extends Fragment implements ReloadDataInter
                                 FitHelper.markIfSchedule(fit, scheduleClasses);
                             }
                             ClassAdapter adapter = new ClassAdapter(tomorrowClasses);
+                            adapter.setReloadFragment(this);
+                            adapter.refresh();
                             recyclerView.setAdapter(adapter);
                         }, err ->
                                 Toast.makeText(TomorrowClassesFragment.this.getContext(), "Something went wrong...Please try later!", Toast.LENGTH_SHORT).show()
                 );
     }
 
-    public UpdateDataInterface getUpdateData() {
-        return updateData;
+    @Override
+    public void refreshOtherClasses() {
+        // if current classes were changed, update reserved classes
+        if (mainActivityClasses != null) {
+            mainActivityClasses.updateReservedData();
+        }
     }
 
-    public void setUpdateData(UpdateDataInterface updateData) {
-        this.updateData = updateData;
+    @Override
+    public void refreshCurrentClasses() {
+        loadData();
+    }
+
+    public void setMainActivityClasses(UpdateDataInterface mainActivityClasses) {
+        this.mainActivityClasses = mainActivityClasses;
     }
 
 }

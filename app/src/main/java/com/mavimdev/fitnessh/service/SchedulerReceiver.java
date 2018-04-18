@@ -3,18 +3,17 @@ package com.mavimdev.fitnessh.service;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.widget.Toast;
+import android.os.PowerManager;
+import android.util.Log;
 
-import com.mavimdev.fitnessh.model.FitClassStatus;
 import com.mavimdev.fitnessh.network.FitnessDataService;
 import com.mavimdev.fitnessh.network.RetrofitInstance;
 import com.mavimdev.fitnessh.util.FitHelper;
-import com.mavimdev.fitnessh.util.StorageHelper;
 
 import java.security.InvalidParameterException;
-import java.util.ArrayList;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
-import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
 
@@ -26,7 +25,14 @@ public class SchedulerReceiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        Toast.makeText(context, "Schedule received", Toast.LENGTH_SHORT).show();
+//        PowerManager pm = (PowerManager)context.getSystemService(Context.POWER_SERVICE);
+//        PowerManager.WakeLock wl = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "com.fitnessh");
+//        if (!wl.isHeld()) {
+//            wl.acquire();
+//        }
+
+        AtomicInteger attemptsCount = new AtomicInteger();
+        Log.i("SchedulerReceiver", "Schedule received");
         if (!FitHelper.SCHEDULE_INTENT_ACTION.equals(intent.getAction())) {
             return;
         }
@@ -34,19 +40,25 @@ public class SchedulerReceiver extends BroadcastReceiver {
         if (fitClassId == null) {
             throw new InvalidParameterException();
         }
-        FitnessDataService service = RetrofitInstance.getRetrofitInstance().create(FitnessDataService.class);
-        Observable<ArrayList<FitClassStatus>> call = service.bookClass(FitHelper.CLIENT_ID, fitClassId,
-                FitHelper.RESERVATION_PASSWORD);
-        call.subscribeOn(Schedulers.io())
+
+        // reserve the class
+        RetrofitInstance.getRetrofitInstance().create(FitnessDataService.class)
+                .bookClass(FitHelper.CLIENT_ID, fitClassId, FitHelper.RESERVATION_PASSWORD)
+                .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
+                .repeatWhen(observable -> observable.delay(FitHelper.ATTEMPTS_SECONDS_REPEAT, TimeUnit.SECONDS))
+                .takeWhile(response -> response.get(0).getStatus().equals(FitHelper.CLASS_NOT_AVAILABLE))
+                .takeUntil(observable -> attemptsCount.get() >= FitHelper.MAX_ATTEMPTS)
                 .subscribe(response -> {
-                            Toast.makeText(context, response.get(0).getStatus(), Toast.LENGTH_LONG).show();
-                            // remove schedule class from storage
-                            StorageHelper.removeScheduleClass(context, fitClassId);
-                        },
-                        err -> {
-                            Toast.makeText(context, "Erro a reservar a aula.", Toast.LENGTH_LONG).show();
+                            attemptsCount.getAndIncrement();
+                            if (!response.get(0).getStatus().equals(FitHelper.CLASS_NOT_AVAILABLE)) {
+                                Log.i("Booking ScheduleClass", response.get(0).getStatus());
+                            }
+                        }, err -> {
+                            Log.e("Booking ScheduleClass", "Erro a reservar a aula: " + err.getMessage());
                         }
                 );
+
+//        wl.release();
     }
 }

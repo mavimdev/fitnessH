@@ -1,6 +1,7 @@
 package com.mavimdev.fitnessh.fragment;
 
 
+import android.annotation.SuppressLint;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
@@ -29,10 +30,11 @@ import io.reactivex.schedulers.Schedulers;
 /**
  * A simple {@link Fragment} subclass.
  */
-public class TodayClassesFragment extends Fragment implements ReloadDataInterface {
+public class TodayClassesFragment extends Fragment implements UpdateClassesInterface {
 
-    private UpdateDataInterface updateData;
+    private UpdateDataInterface mainActivityClasses;
     private RecyclerView recyclerView = null;
+    private ClassAdapter adapter = null;
 
     public TodayClassesFragment() {
         // Required empty public constructor
@@ -44,7 +46,7 @@ public class TodayClassesFragment extends Fragment implements ReloadDataInterfac
         recyclerView = (RecyclerView) inflater.inflate(
                 R.layout.recycler_view, container, false);
 
-        this.reloadData();
+        this.loadData();
 
         recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
@@ -52,8 +54,8 @@ public class TodayClassesFragment extends Fragment implements ReloadDataInterfac
     }
 
 
-    @Override
-    public void reloadData() {
+    @SuppressLint("CheckResult")
+    public void loadData() {
         ArrayList<FitClass> reservedClassesAux = new ArrayList<>();
 
         /*Create handle for the RetrofitInstance interface*/
@@ -78,18 +80,30 @@ public class TodayClassesFragment extends Fragment implements ReloadDataInterfac
                                 FitHelper.markIfReserved(fit, reservedClassesAux);
                                 FitHelper.markIfSchedule(fit, scheduleClasses);
                             }
-                            ClassAdapter adapter = new ClassAdapter(todayClasses);
+                            adapter = new ClassAdapter(todayClasses);
+                            adapter.setReloadFragment(this);
+                            adapter.refresh();
                             recyclerView.setAdapter(adapter);
                         },
                         err -> Toast.makeText(TodayClassesFragment.this.getContext(), "Something went wrong...Please try later!", Toast.LENGTH_SHORT).show()
                 );
     }
 
-    public UpdateDataInterface getUpdateData() {
-        return updateData;
+    @Override
+    public void refreshOtherClasses() {
+        // if current classes were changed, update reserved classes
+       if (mainActivityClasses != null) {
+           mainActivityClasses.updateReservedData();
+       }
     }
 
-    public void setUpdateData(UpdateDataInterface updateData) {
-        this.updateData = updateData;
+    // update classes
+    @Override
+    public void refreshCurrentClasses() {
+        loadData();
+    }
+
+    public void setMainActivityClasses(UpdateDataInterface mainActivityClasses) {
+        this.mainActivityClasses = mainActivityClasses;
     }
 }
