@@ -1,8 +1,9 @@
 package com.mavimdev.fitnessh.network;
 
 import com.mavimdev.fitnessh.model.FitClass;
-import com.mavimdev.fitnessh.model.FitClassStatus;
+import com.mavimdev.fitnessh.model.FitClient;
 import com.mavimdev.fitnessh.model.FitClube;
+import com.mavimdev.fitnessh.model.FitStatus;
 
 import java.util.ArrayList;
 
@@ -33,15 +34,23 @@ public interface FitnessDataService {
 
     @FormUrlEncoded
     @POST("aulas-marcacao-json.php")
-    Observable<ArrayList<FitClassStatus>> bookClass(@Field("id") String userId,
-                                                    @Field("aid") String classId,
-                                                    @Field("password") String password);
+    Observable<ArrayList<FitStatus>> bookClass(@Field("id") String userId,
+                                               @Field("aid") String classId,
+                                               @Field("password") String password);
 
     @FormUrlEncoded
     @POST("aulas-cancelar-json.php")
-    Observable<ArrayList<FitClassStatus>> unbookClass(@Field("aid") String classId);
+    Observable<ArrayList<FitStatus>> unbookClass(@Field("aid") String classId);
 
     @GET("club-list-json.php")
     Observable<ArrayList<FitClube>> getClubList();
 
+    @FormUrlEncoded
+    @POST("login-json.php")
+    Observable<ArrayList<FitClient>> doLogin(@Field("email") String email,
+                                             @Field("password") String password);
+
+    @FormUrlEncoded
+    @POST("user-check-json.php")
+    Observable<ArrayList<FitStatus>> checkUser(@Field("id") String clientId);
 }

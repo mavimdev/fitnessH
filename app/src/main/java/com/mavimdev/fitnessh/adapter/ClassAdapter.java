@@ -17,7 +17,7 @@ import android.widget.Toast;
 import com.mavimdev.fitnessh.R;
 import com.mavimdev.fitnessh.fragment.UpdateClassesInterface;
 import com.mavimdev.fitnessh.model.FitClass;
-import com.mavimdev.fitnessh.model.FitClassStatus;
+import com.mavimdev.fitnessh.model.FitStatus;
 import com.mavimdev.fitnessh.network.FitnessDataService;
 import com.mavimdev.fitnessh.network.RetrofitInstance;
 import com.mavimdev.fitnessh.service.SchedulerReceiver;
@@ -87,7 +87,7 @@ public class ClassAdapter extends RecyclerView.Adapter<ClassAdapter.ClassViewHol
         if (fitClass.getClassState() == ClassState.AVAILABLE) {
             // reserve the class
             RetrofitInstance.getRetrofitInstance().create(FitnessDataService.class)
-                    .bookClass(FitHelper.CLIENT_ID, fitClass.getId(), FitHelper.RESERVATION_PASSWORD)
+                    .bookClass(FitHelper.clientId, fitClass.getId(), FitHelper.RESERVATION_PASSWORD)
                     .subscribeOn(Schedulers.io())
                     .observeOn(AndroidSchedulers.mainThread())
                     .repeatWhen(observable -> observable.delay(FitHelper.ATTEMPTS_SECONDS_REPEAT, TimeUnit.SECONDS))
@@ -157,7 +157,7 @@ public class ClassAdapter extends RecyclerView.Adapter<ClassAdapter.ClassViewHol
     private void uncheckClass(final ClassViewHolder holder, FitClass fitClass) {
         if (fitClass.getClassState() == ClassState.RESERVED) {
             FitnessDataService service = RetrofitInstance.getRetrofitInstance().create(FitnessDataService.class);
-            Observable<ArrayList<FitClassStatus>> call = service.unbookClass(fitClass.getAid());
+            Observable<ArrayList<FitStatus>> call = service.unbookClass(fitClass.getAid());
             call.subscribeOn(Schedulers.io())
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(response -> {

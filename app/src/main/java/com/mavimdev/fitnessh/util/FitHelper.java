@@ -1,9 +1,13 @@
 package com.mavimdev.fitnessh.util;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.widget.CompoundButton;
 
+import com.mavimdev.fitnessh.R;
 import com.mavimdev.fitnessh.model.FitClass;
+import com.mavimdev.fitnessh.model.FitClient;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -16,24 +20,27 @@ import java.util.List;
  */
 
 public class FitHelper {
-    public final static int HOURS_BEFORE_RESERVATION = 10;
-    public final static String RESERVATION_PASSWORD = "e94b10f0da8d42095ca5c20927416de5";
+    // shared preferences
     public static final String SP_FAVORITE_CLUB_ID = "SP_FAVORITE_CLUB_ID";
     public static final String SP_CLIENT_ID = "SP_CLIENT_ID";
-
-    // user details - organize this
-    public static String FITNESS_HUT_CLUB_ID;
-    public static String FITNESS_HUT_CLUB_TITLE;
-    public static  String PACK_FITNESS_HUT = "FOU__N__";
-    public static  String CLIENT_ID;
-
+    public static final String SP_PACK_FITNESS_HUT = "SP_PACK_FITNESS_HUT";
+    public static final String SP_FAVORITE_CLUB_TITLE = "SP_FAVORITE_CLUB_TITLE";
+    // user details
+    public static String fitnessHutClubId;
+    public static String fitnessHutClubTitle;
+    public static String packFitnessHut;
+    public static String clientId;
+    // constants
+    public final static int HOURS_BEFORE_RESERVATION = 10;
+    public static final int MAX_ATTEMPTS = 15;
+    public static final int ATTEMPTS_SECONDS_REPEAT = 7;
+    public final static String RESERVATION_PASSWORD = "e94b10f0da8d42095ca5c20927416de5";
+    // config
     public static final String SCHEDULE_INTENT_ACTION = "com.mavim.ACTION_SCHEDULE";
     public static final String COM_MAVIM_FITNESS_FIT_CLASS_ID = "com.mavim.fitnessH.fitClassId";
     public static final String SCHEDULE_INFO_FILE = "scheduleclasses.fit";
     public static final String CLASS_NOT_AVAILABLE = "NÃO PODE RESERVAR A AULA! AULA INDISPONÍVEL.";
     public static final String CLASS_RESERVED = "AULA RESERVADA.";
-    public static final int MAX_ATTEMPTS = 15;
-    public static final int ATTEMPTS_SECONDS_REPEAT = 7;
 
 
     public static void classifyClass(FitClass fit) throws ParseException {
@@ -75,28 +82,28 @@ public class FitHelper {
     public static void tintClass(FitClass fclass, CompoundButton swBtnReserveClass) {
         if (fclass.getClassState() == ClassState.AVAILABLE) {
             swBtnReserveClass.setTextColor(Color.GREEN);
-            swBtnReserveClass.setText("DISPONIVEL");
+            swBtnReserveClass.setText(R.string.class_status_available);
             swBtnReserveClass.setChecked(false);
         } else if (fclass.getClassState() == ClassState.RESERVED) {
             swBtnReserveClass.setTextColor(Color.BLUE);
-            swBtnReserveClass.setText("RESERVADA");
+            swBtnReserveClass.setText(R.string.class_status_reserved);
             swBtnReserveClass.setChecked(true);
         } else if (fclass.getClassState() == ClassState.SCHEDULE) {
             swBtnReserveClass.setTextColor(Color.YELLOW);
-            swBtnReserveClass.setText("AGENDADA");
+            swBtnReserveClass.setText(R.string.class_status_schedule);
             swBtnReserveClass.setChecked(true);
         } else if (fclass.getClassState() == ClassState.EXPIRED) {
             swBtnReserveClass.setTextColor(Color.GRAY);
-            swBtnReserveClass.setText("EXPIRADA");
+            swBtnReserveClass.setText(R.string.class_status_expired);
             swBtnReserveClass.setChecked(false);
             swBtnReserveClass.setEnabled(false);
         } else if (fclass.getClassState() == ClassState.SOLD_OUT) {
             swBtnReserveClass.setTextColor(Color.RED);
-            swBtnReserveClass.setText("ESGOTADA");
+            swBtnReserveClass.setText(R.string.class_status_soldout);
             swBtnReserveClass.setChecked(false);
         } else if (fclass.getClassState() == ClassState.UNAVAILABLE) {
             swBtnReserveClass.setTextColor(Color.GRAY);
-            swBtnReserveClass.setText("INDISPONIVEL");
+            swBtnReserveClass.setText(R.string.class_status_unavailable);
             swBtnReserveClass.setChecked(false);
         }
     }
@@ -132,5 +139,22 @@ public class FitHelper {
             }
         }
         return false;
+    }
+
+
+    public static void saveClient(Context context, FitClient fitClient) {
+        fitnessHutClubId = fitClient.getMyhutClubId();
+        fitnessHutClubTitle = fitClient.getMyhutClubName();
+        packFitnessHut = fitClient.getMyhutPack();
+        clientId = fitClient.getMyhutId();
+
+        SharedPreferences.Editor sharedPref = context.getSharedPreferences(
+                context.getString(R.string.preference_file_key), Context.MODE_PRIVATE).edit();
+        sharedPref.putString(SP_CLIENT_ID, clientId);
+        sharedPref.putString(SP_FAVORITE_CLUB_ID, fitnessHutClubId);
+        sharedPref.putString(SP_FAVORITE_CLUB_TITLE, fitnessHutClubTitle);
+        sharedPref.putString(SP_PACK_FITNESS_HUT, packFitnessHut);
+        sharedPref.apply();
+
     }
 }

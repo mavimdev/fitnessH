@@ -57,7 +57,7 @@ public class TomorrowClassesFragment extends Fragment implements UpdateClassesIn
         /*Create handle for the RetrofitInstance interface*/
         FitnessDataService service = RetrofitInstance.getRetrofitInstance().create(FitnessDataService.class);
         /*Call the method to get the classes data*/
-        Observable<ArrayList<FitClass>> call = service.getTomorrowClasses(FitHelper.FITNESS_HUT_CLUB_ID, FitHelper.PACK_FITNESS_HUT);
+        Observable<ArrayList<FitClass>> call = service.getTomorrowClasses(FitHelper.fitnessHutClubId, FitHelper.packFitnessHut);
         call.subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(tomorrowClasses -> {

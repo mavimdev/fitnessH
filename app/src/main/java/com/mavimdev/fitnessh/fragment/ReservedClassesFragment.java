@@ -60,7 +60,7 @@ public class ReservedClassesFragment extends Fragment implements UpdateClassesIn
         /*Create handle for the RetrofitInstance interface*/
         FitnessDataService service = RetrofitInstance.getRetrofitInstance().create(FitnessDataService.class);
         /*Call the method to get the classes data*/
-        Observable<ArrayList<FitClass>> call = service.getReservedClasses(FitHelper.CLIENT_ID);
+        Observable<ArrayList<FitClass>> call = service.getReservedClasses(FitHelper.clientId);
         call.subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(reservedClasses -> {
@@ -81,7 +81,7 @@ public class ReservedClassesFragment extends Fragment implements UpdateClassesIn
                             adapter.refresh();
                             recyclerView.setAdapter(adapter);
                         }, err ->
-                                Toast.makeText(ReservedClassesFragment.this.getContext(), "Something went wrong...Please try later!", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(ReservedClassesFragment.this.getContext(), "Ocorreu um erro.. por favor tente novamente!", Toast.LENGTH_SHORT).show()
                 );
     }
 

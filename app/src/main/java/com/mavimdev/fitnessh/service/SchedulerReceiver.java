@@ -3,7 +3,6 @@ package com.mavimdev.fitnessh.service;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.os.PowerManager;
 import android.util.Log;
 
 import com.mavimdev.fitnessh.network.FitnessDataService;
@@ -43,7 +42,7 @@ public class SchedulerReceiver extends BroadcastReceiver {
 
         // reserve the class
         RetrofitInstance.getRetrofitInstance().create(FitnessDataService.class)
-                .bookClass(FitHelper.CLIENT_ID, fitClassId, FitHelper.RESERVATION_PASSWORD)
+                .bookClass(FitHelper.clientId, fitClassId, FitHelper.RESERVATION_PASSWORD)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .repeatWhen(observable -> observable.delay(FitHelper.ATTEMPTS_SECONDS_REPEAT, TimeUnit.SECONDS))

@@ -62,12 +62,11 @@ public class TodayClassesFragment extends Fragment implements UpdateClassesInter
         FitnessDataService service = RetrofitInstance.getRetrofitInstance().create(FitnessDataService.class);
 
         /*Call the method to get the classes data*/
-        Observable<ArrayList<FitClass>> call = service.getReservedClasses(FitHelper.CLIENT_ID);
+        Observable<ArrayList<FitClass>> call = service.getReservedClasses(FitHelper.clientId);
         call.flatMap(reservedClasses ->
         {
             reservedClassesAux.addAll(reservedClasses);
-            return service.getTodayClasses(FitHelper.FITNESS_HUT_CLUB_ID, FitHelper.PACK_FITNESS_HUT);
-            // TODO MAvim : get actual club -----------------^
+            return service.getTodayClasses(FitHelper.fitnessHutClubId, FitHelper.packFitnessHut);
         }).subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(todayClasses ->
@@ -75,8 +74,7 @@ public class TodayClassesFragment extends Fragment implements UpdateClassesInter
                             List<FitClass> scheduleClasses = StorageHelper.loadScheduleClasses(getContext());
 
                             for (FitClass fit : todayClasses) {
-                                fit.setCtitle(FitHelper.FITNESS_HUT_CLUB_TITLE);
-                                // TODO MAvim : get actual club -----^
+                                fit.setCtitle(FitHelper.fitnessHutClubTitle);
                                 FitHelper.markIfReserved(fit, reservedClassesAux);
                                 FitHelper.markIfSchedule(fit, scheduleClasses);
                             }
@@ -85,16 +83,16 @@ public class TodayClassesFragment extends Fragment implements UpdateClassesInter
                             adapter.refresh();
                             recyclerView.setAdapter(adapter);
                         },
-                        err -> Toast.makeText(TodayClassesFragment.this.getContext(), "Something went wrong...Please try later!", Toast.LENGTH_SHORT).show()
+                        err -> Toast.makeText(TodayClassesFragment.this.getContext(), "Ocorreu um erro.. tente mais tarde!", Toast.LENGTH_SHORT).show()
                 );
     }
 
     @Override
     public void refreshOtherClasses() {
         // if current classes were changed, update reserved classes
-       if (mainActivityClasses != null) {
-           mainActivityClasses.updateReservedData();
-       }
+        if (mainActivityClasses != null) {
+            mainActivityClasses.updateReservedData();
+        }
     }
 
     // update classes

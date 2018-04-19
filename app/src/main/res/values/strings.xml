@@ -10,4 +10,13 @@
     <string name="preference_file_key">com.mavim.fitnessh.clubid</string>
     <string name="title_activity_login">LoginActivity</string>
     <string name="action_settings">Settings</string>
+    <string name="error_invalid_input_data">Os dados introduzidos são inválidos</string>
+    <string name="error_blank_password">A password não pode ficar em branco</string>
+    <string name="error_blank_email">O email não pode ficar em branco</string>
+    <string name="class_status_available">DISPONIVEL</string>
+    <string name="class_status_reserved">RESERVADA</string>
+    <string name="class_status_schedule">AGENDADA</string>
+    <string name="class_status_expired">EXPIRADA</string>
+    <string name="class_status_soldout">ESGOTADA</string>
+    <string name="class_status_unavailable">INDISPONIVEL</string>
 </resources>

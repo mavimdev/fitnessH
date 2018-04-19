@@ -6,9 +6,9 @@ import com.google.gson.annotations.SerializedName;
  * Created by migue on 04/03/2018.
  */
 
-public class FitClassStatus {
+public class FitStatus {
 
-    public FitClassStatus(String status) {
+    public FitStatus(String status) {
         this.status = status;
     }
 

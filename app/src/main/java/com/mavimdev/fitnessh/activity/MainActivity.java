@@ -2,6 +2,7 @@ package com.mavimdev.fitnessh.activity;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -54,21 +55,16 @@ public class MainActivity extends AppCompatActivity implements UpdateDataInterfa
 //        Toolbar toolbar = findViewById(R.id.toolbar);
 //        setSupportActionBar(toolbar);
 
-        SharedPreferences sharedPref = this.getSharedPreferences(
-                getString(R.string.preference_file_key), Context.MODE_PRIVATE);
-
+        SharedPreferences sharedPref = this.getSharedPreferences(getString(R.string.preference_file_key), Context.MODE_PRIVATE);
         // client id
-        if (FitHelper.CLIENT_ID == null) {
-            FitHelper.CLIENT_ID = sharedPref.getString(FitHelper.SP_CLIENT_ID, "0");
+        if (FitHelper.clientId == null) {
+            FitHelper.clientId = sharedPref.getString(FitHelper.SP_CLIENT_ID, "");
+            FitHelper.fitnessHutClubId = sharedPref.getString(FitHelper.SP_FAVORITE_CLUB_ID, "");
+            FitHelper.fitnessHutClubTitle = sharedPref.getString(FitHelper.SP_FAVORITE_CLUB_TITLE, "");
         }
-        if (FitHelper.CLIENT_ID.equals("0")) {
 
-        }
-
-
-        // favorite club
-        if (FitHelper.FITNESS_HUT_CLUB_ID == null) {
-            FitHelper.FITNESS_HUT_CLUB_ID = sharedPref.getString(FitHelper.SP_FAVORITE_CLUB_ID, "0");
+        if (FitHelper.clientId.isEmpty()) {
+            startActivity(new Intent(this, LoginActivity.class));
         }
 
         // when chosen club is changed
@@ -77,14 +73,14 @@ public class MainActivity extends AppCompatActivity implements UpdateDataInterfa
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
                 FitClube club = (FitClube) adapterView.getSelectedItem();
-                if (!FitHelper.FITNESS_HUT_CLUB_ID.equals(club.getId())) {
-                    if (FitHelper.FITNESS_HUT_CLUB_ID.equals("0")) {
+                if (!FitHelper.fitnessHutClubId.equals(club.getId())) {
+                    if (FitHelper.fitnessHutClubId.isEmpty()) {
                         SharedPreferences.Editor sharedEdit = sharedPref.edit();
                         sharedEdit.putString(FitHelper.SP_FAVORITE_CLUB_ID, club.getId());
-                        sharedEdit.commit();
+                        sharedEdit.apply();
                     }
-                    FitHelper.FITNESS_HUT_CLUB_ID = club.getId();
-                    FitHelper.FITNESS_HUT_CLUB_TITLE = club.getTitle();
+                    FitHelper.fitnessHutClubId = club.getId();
+                    FitHelper.fitnessHutClubTitle = club.getTitle();
                     updateTodayData();
                     updateTomorrowData();
                 }
@@ -116,6 +112,16 @@ public class MainActivity extends AppCompatActivity implements UpdateDataInterfa
         // Set Tabs inside Toolbar
         TabLayout tabs = findViewById(R.id.tabs);
         tabs.setupWithViewPager(viewPager);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+//        if (FitHelper.clientId.isEmpty()) {
+//            startActivity(new Intent(this, LoginActivity.class));
+////            finish();
+//        }
     }
 
     // Add Fragments to Tabs
