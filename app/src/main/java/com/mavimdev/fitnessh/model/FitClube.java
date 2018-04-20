@@ -76,6 +76,10 @@ public class FitClube {
 //    @SerializedName("url")
 //    private String url;
 
+    public FitClube(String id) {
+        this.id = id;
+    }
+
     public String getId() {
         return id;
     }

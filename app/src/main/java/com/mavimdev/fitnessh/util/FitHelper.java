@@ -31,7 +31,10 @@ public class FitHelper {
     public static String packFitnessHut;
     public static String clientId;
     // constants
-    public final static int HOURS_BEFORE_RESERVATION = 10;
+    public static final int TODAY_CLASSES_TAB = 0;
+    public static final int TOMORROW_CLASSES_TAB = 1;
+    public static final int RESERVED_CLASSES_TAB = 2;
+    public static final int HOURS_BEFORE_RESERVATION = 10;
     public static final int MAX_ATTEMPTS = 15;
     public static final int ATTEMPTS_SECONDS_REPEAT = 7;
     public final static String RESERVATION_PASSWORD = "e94b10f0da8d42095ca5c20927416de5";
