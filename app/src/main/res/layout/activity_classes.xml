@@ -21,7 +21,7 @@
             android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar">
 
             <android.support.v7.widget.Toolbar
-                android:id="@+id/toolbar"
+                android:id="@+id/toolbar_classes"
                 android:layout_width="match_parent"
                 android:layout_height="?android:attr/actionBarSize"
                 android:background="?android:attr/colorPrimary"
@@ -31,7 +31,7 @@
             <fragment xmlns:android="http://schemas.android.com/apk/res/android"
                 xmlns:app="http://schemas.android.com/apk/res-auto"
                 xmlns:tools="http://schemas.android.com/tools"
-                android:id="@+id/fragment"
+                android:id="@+id/fragment_favorite_club"
                 android:name="com.mavimdev.fitnessh.fragment.FavoriteClubFragment"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"

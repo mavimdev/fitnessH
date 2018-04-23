@@ -8,6 +8,7 @@ import android.widget.CompoundButton;
 import com.mavimdev.fitnessh.R;
 import com.mavimdev.fitnessh.model.FitClass;
 import com.mavimdev.fitnessh.model.FitClient;
+import com.mavimdev.fitnessh.model.FitClube;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -28,6 +29,8 @@ public class FitHelper {
     // user details
     public static String fitnessHutClubId;
     public static String fitnessHutClubTitle;
+    public static String fitnessFavoriteClubId;
+    public static String fitnessFavoriteClubTitle;
     public static String packFitnessHut;
     public static String clientId;
     // constants
@@ -44,6 +47,8 @@ public class FitHelper {
     public static final String SCHEDULE_INFO_FILE = "scheduleclasses.fit";
     public static final String CLASS_NOT_AVAILABLE = "NÃO PODE RESERVAR A AULA! AULA INDISPONÍVEL.";
     public static final String CLASS_RESERVED = "AULA RESERVADA.";
+    public static final int REQUEST_FAVORITE_CODE = 1;
+    public static final String REFRESH_CLASSES = "fit_refresh_classes";
 
 
     public static void classifyClass(FitClass fit) throws ParseException {
@@ -147,19 +152,22 @@ public class FitHelper {
 
     public static void saveClient(Context context, FitClient fitClient) {
         fitnessHutClubId = fitClient.getMyhutClubId();
+        fitnessFavoriteClubId = fitClient.getMyhutClubId();
         fitnessHutClubTitle = fitClient.getMyhutClubName();
+        fitnessFavoriteClubTitle = fitClient.getMyhutClubName();
         packFitnessHut = fitClient.getMyhutPack();
         clientId = fitClient.getMyhutId();
 
         SharedPreferences.Editor sharedPrefEditor = context.getSharedPreferences(
                 context.getString(R.string.preference_file_key), Context.MODE_PRIVATE).edit();
         sharedPrefEditor.putString(SP_CLIENT_ID, clientId);
-        sharedPrefEditor.putString(SP_FAVORITE_CLUB_ID, fitnessHutClubId);
-        sharedPrefEditor.putString(SP_FAVORITE_CLUB_TITLE, fitnessHutClubTitle);
+        sharedPrefEditor.putString(SP_FAVORITE_CLUB_ID, fitnessFavoriteClubId);
+        sharedPrefEditor.putString(SP_FAVORITE_CLUB_TITLE, fitnessFavoriteClubTitle);
         sharedPrefEditor.putString(SP_PACK_FITNESS_HUT, packFitnessHut);
         sharedPrefEditor.apply();
 
     }
+
 
     public static void clearSharedPreferences(Context context) {
         SharedPreferences.Editor sharedPrefEditor = context.getSharedPreferences(
@@ -168,12 +176,16 @@ public class FitHelper {
         sharedPrefEditor.apply();
     }
 
+
     public static void clearUserInfo() {
         fitnessHutClubId = "";
         fitnessHutClubTitle = "";
+        fitnessFavoriteClubId = "";
+        fitnessFavoriteClubTitle = "";
         packFitnessHut = "";
         clientId = "";
     }
+
 
     public static void loadSharedPreferences(Context context) {
         SharedPreferences sharedPref = context.getSharedPreferences(
@@ -181,8 +193,21 @@ public class FitHelper {
         if (clientId == null) {
             clientId = sharedPref.getString(FitHelper.SP_CLIENT_ID, "");
             fitnessHutClubId = sharedPref.getString(FitHelper.SP_FAVORITE_CLUB_ID, "");
+            fitnessFavoriteClubId = sharedPref.getString(FitHelper.SP_FAVORITE_CLUB_ID, "");
             fitnessHutClubTitle = sharedPref.getString(FitHelper.SP_FAVORITE_CLUB_TITLE, "");
+            fitnessFavoriteClubTitle = sharedPref.getString(FitHelper.SP_FAVORITE_CLUB_TITLE, "");
             packFitnessHut = sharedPref.getString(FitHelper.SP_PACK_FITNESS_HUT, "");
         }
+    }
+
+
+    public static void saveClub(Context context, FitClube club) {
+        fitnessFavoriteClubId = club.getId();
+        fitnessFavoriteClubTitle = club.getTitle();
+        SharedPreferences.Editor sharedPrefEditor = context.getSharedPreferences(
+                context.getString(R.string.preference_file_key), Context.MODE_PRIVATE).edit();
+        sharedPrefEditor.putString(SP_FAVORITE_CLUB_ID, club.getId());
+        sharedPrefEditor.putString(SP_FAVORITE_CLUB_TITLE, club.getTitle());
+        sharedPrefEditor.apply();
     }
 }

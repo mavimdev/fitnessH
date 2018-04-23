@@ -25,4 +25,6 @@
     <string name="navigation_drawer_close">Close navigation drawer</string>
     <string name="club">Clube:</string>
     <string name="reserve_classes">Reservar aulas</string>
+    <string name="title_activity_favorite_club">Clube Favorito</string>
+    <string name="title_activity_teste">testeActivity</string>
 </resources>

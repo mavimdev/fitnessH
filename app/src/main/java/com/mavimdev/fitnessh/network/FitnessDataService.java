@@ -53,4 +53,9 @@ public interface FitnessDataService {
     @FormUrlEncoded
     @POST("user-check-json.php")
     Observable<ArrayList<FitStatus>> checkUser(@Field("id") String clientId);
+
+    @FormUrlEncoded
+    @POST("set-favclub-json.php")
+    Observable<ArrayList<FitClient>> setFavoriteClub(@Field("id") String clientId,
+                                                     @Field("cid") String clubId);
 }

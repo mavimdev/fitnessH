@@ -1,6 +1,7 @@
 package com.mavimdev.fitnessh.activity;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -18,6 +19,7 @@ import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 
 import com.mavimdev.fitnessh.R;
+import com.mavimdev.fitnessh.fragment.FavoriteClubFragment;
 import com.mavimdev.fitnessh.fragment.ReservedClassesFragment;
 import com.mavimdev.fitnessh.fragment.TodayClassesFragment;
 import com.mavimdev.fitnessh.fragment.TomorrowClassesFragment;
@@ -38,7 +40,7 @@ public class ClassesActivity extends AppCompatActivity implements UpdateDataInte
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_classes);
         // Adding Toolbar to Main screen
-        Toolbar toolbar = findViewById(R.id.toolbar);
+        Toolbar toolbar = findViewById(R.id.toolbar_classes);
         setSupportActionBar(toolbar);
 
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
@@ -66,7 +68,9 @@ public class ClassesActivity extends AppCompatActivity implements UpdateDataInte
         int id = item.getItemId();
 
         if (id == R.id.nav_favclub) {
-
+            Intent intent = new Intent(this, FavoriteClubActivity.class);
+            startActivityForResult(intent, FitHelper.REQUEST_FAVORITE_CODE);
+            item.setCheckable(false);
         } else if (id == R.id.nav_logout) {
             // clear the user info
             FitHelper.clearSharedPreferences(this);
@@ -127,6 +131,7 @@ public class ClassesActivity extends AppCompatActivity implements UpdateDataInte
         }
     }
 
+
     @Override
     public void updateReservedData() {
         if (adapter != null) {
@@ -134,6 +139,29 @@ public class ClassesActivity extends AppCompatActivity implements UpdateDataInte
             requestFragment.refreshCurrentClasses();
         }
     }
+
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        switch (requestCode) {
+            case (FitHelper.REQUEST_FAVORITE_CODE): {
+                if (resultCode == Activity.RESULT_OK) {
+                    boolean refresh = data.getBooleanExtra(FitHelper.REFRESH_CLASSES, false);
+                    if (refresh) {
+                        updateTodayData();
+                        updateTomorrowData();
+                        FragmentManager fm = getSupportFragmentManager();
+                        // added fragment added via layout xml
+                        FavoriteClubFragment fragment = (FavoriteClubFragment) fm.findFragmentById(R.id.fragment_favorite_club);
+                        fragment.updateSelectedClub();
+                    }
+                }
+                break;
+            }
+        }
+    }
+
 
     /**
      *
