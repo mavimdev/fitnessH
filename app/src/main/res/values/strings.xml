@@ -19,9 +19,10 @@
     <string name="class_status_expired">EXPIRADA</string>
     <string name="class_status_soldout">ESGOTADA</string>
     <string name="class_status_unavailable">INDISPONIVEL</string>
-    <string name="title_activity_main">MainActivity</string>
     <string name="nav_header_subtitle">mavimdev@gmail.com</string>
     <string name="choose_fav_club">Escolher clube favorito</string>
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
+    <string name="club">Clube:</string>
+    <string name="reserve_classes">Reservar aulas</string>
 </resources>

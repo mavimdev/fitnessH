@@ -151,13 +151,38 @@ public class FitHelper {
         packFitnessHut = fitClient.getMyhutPack();
         clientId = fitClient.getMyhutId();
 
-        SharedPreferences.Editor sharedPref = context.getSharedPreferences(
+        SharedPreferences.Editor sharedPrefEditor = context.getSharedPreferences(
                 context.getString(R.string.preference_file_key), Context.MODE_PRIVATE).edit();
-        sharedPref.putString(SP_CLIENT_ID, clientId);
-        sharedPref.putString(SP_FAVORITE_CLUB_ID, fitnessHutClubId);
-        sharedPref.putString(SP_FAVORITE_CLUB_TITLE, fitnessHutClubTitle);
-        sharedPref.putString(SP_PACK_FITNESS_HUT, packFitnessHut);
-        sharedPref.apply();
+        sharedPrefEditor.putString(SP_CLIENT_ID, clientId);
+        sharedPrefEditor.putString(SP_FAVORITE_CLUB_ID, fitnessHutClubId);
+        sharedPrefEditor.putString(SP_FAVORITE_CLUB_TITLE, fitnessHutClubTitle);
+        sharedPrefEditor.putString(SP_PACK_FITNESS_HUT, packFitnessHut);
+        sharedPrefEditor.apply();
 
+    }
+
+    public static void clearSharedPreferences(Context context) {
+        SharedPreferences.Editor sharedPrefEditor = context.getSharedPreferences(
+                context.getString(R.string.preference_file_key), Context.MODE_PRIVATE).edit();
+        sharedPrefEditor.clear();
+        sharedPrefEditor.apply();
+    }
+
+    public static void clearUserInfo() {
+        fitnessHutClubId = "";
+        fitnessHutClubTitle = "";
+        packFitnessHut = "";
+        clientId = "";
+    }
+
+    public static void loadSharedPreferences(Context context) {
+        SharedPreferences sharedPref = context.getSharedPreferences(
+                context.getString(R.string.preference_file_key), Context.MODE_PRIVATE);        // client id
+        if (clientId == null) {
+            clientId = sharedPref.getString(FitHelper.SP_CLIENT_ID, "");
+            fitnessHutClubId = sharedPref.getString(FitHelper.SP_FAVORITE_CLUB_ID, "");
+            fitnessHutClubTitle = sharedPref.getString(FitHelper.SP_FAVORITE_CLUB_TITLE, "");
+            packFitnessHut = sharedPref.getString(FitHelper.SP_PACK_FITNESS_HUT, "");
+        }
     }
 }

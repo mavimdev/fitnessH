@@ -1,5 +1,6 @@
 package com.mavimdev.fitnessh.service;
 
+import android.annotation.SuppressLint;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -22,6 +23,7 @@ import io.reactivex.schedulers.Schedulers;
 
 public class SchedulerReceiver extends BroadcastReceiver {
 
+    @SuppressLint("CheckResult")
     @Override
     public void onReceive(Context context, Intent intent) {
 //        PowerManager pm = (PowerManager)context.getSystemService(Context.POWER_SERVICE);
@@ -53,9 +55,7 @@ public class SchedulerReceiver extends BroadcastReceiver {
                             if (!response.get(0).getStatus().equals(FitHelper.CLASS_NOT_AVAILABLE)) {
                                 Log.i("Booking ScheduleClass", response.get(0).getStatus());
                             }
-                        }, err -> {
-                            Log.e("Booking ScheduleClass", "Erro a reservar a aula: " + err.getMessage());
-                        }
+                        }, err -> Log.e("Booking ScheduleClass", "Erro a reservar a aula: " + err.getMessage())
                 );
 
 //        wl.release();
