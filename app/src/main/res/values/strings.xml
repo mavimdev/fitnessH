@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">FitnessH</string>
+    <string name="app_name">Fitness H</string>
     <string name="today">Hoje</string>
     <string name="tomorrow">Amanhã</string>
     <string name="reservation">Reservas</string>
@@ -27,4 +27,5 @@
     <string name="reserve_classes">Reservar aulas</string>
     <string name="title_activity_favorite_club">Clube Favorito</string>
     <string name="title_activity_teste">testeActivity</string>
+    <string name="class_reserved">Aula reservada com sucesso</string>
 </resources>

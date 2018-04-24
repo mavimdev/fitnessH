@@ -2,6 +2,7 @@ package com.mavimdev.fitnessh.fragment;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -77,6 +78,7 @@ public class FavoriteClubFragment extends Fragment {
             public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
                 FitClube club = (FitClube) adapterView.getSelectedItem();
                 FragmentActivity activity = getActivity();
+                ((TextView) adapterView.getChildAt(0)).setTextColor(Color.WHITE);
                 if (activity instanceof UpdateDataInterface) {
                     if (!FitHelper.fitnessHutClubId.equals(club.getId())) {
                         FitHelper.fitnessHutClubId = club.getId();

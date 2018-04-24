@@ -4,6 +4,7 @@
 
     <!-- Internet Permission -->
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
     <application
@@ -15,7 +16,7 @@
         android:theme="@style/AppTheme">
         <receiver
             android:name=".service.DeviceBootReceiver"
-            android:enabled="false">
+            android:enabled="true">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
             </intent-filter>
@@ -25,6 +26,9 @@
             android:enabled="true">
             <intent-filter>
                 <action android:name="com.mavimdev.fitnessh.adapter.ClassAdapter" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="com.mavimdev.fitnessh.service.DeviceBootReceiver" />
             </intent-filter>
         </receiver>
 

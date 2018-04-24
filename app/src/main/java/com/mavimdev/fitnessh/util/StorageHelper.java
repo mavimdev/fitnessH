@@ -18,6 +18,12 @@ import java.util.List;
 
 public class StorageHelper {
 
+    /**
+     * Adds a schedule class to the exist ones
+     * @param context
+     * @param fitClass
+     * @return
+     */
     public static boolean addScheduleClass(Context context, FitClass fitClass) {
         // loads schedule classes
         List<FitClass> scheduleClasses;
@@ -40,7 +46,12 @@ public class StorageHelper {
         return true;
     }
 
-
+    /**
+     * saves the schedules classes on file
+     * @param context
+     * @param scheduleClasses
+     * @throws IOException
+     */
     private static void saveScheduleClasses(Context context, List<FitClass> scheduleClasses) throws IOException {
         Gson gson = new GsonBuilder().create();
         // saves the schedule classes on file
@@ -54,7 +65,12 @@ public class StorageHelper {
         }
     }
 
-
+    /**
+     * loads the schedule classes from file
+     * @param context
+     * @return
+     * @throws IOException
+     */
     public static List<FitClass> loadScheduleClasses(Context context) throws IOException {
         File fitFile = new File(context.getFilesDir(), FitHelper.SCHEDULE_INFO_FILE);
         String fileContent = new String();
@@ -80,7 +96,12 @@ public class StorageHelper {
         return scheduleClasses;
     }
 
-
+    /**
+     * Removes a schedule class from file
+     * @param context
+     * @param fitClassId
+     * @return
+     */
     public static boolean removeScheduleClass(Context context, String fitClassId) {
         // loads schedule classes
         List<FitClass> scheduleClasses;
@@ -90,12 +111,18 @@ public class StorageHelper {
             return false;
         }
         // removes the schedule class
+        boolean changes = false;
         Iterator<FitClass> it = scheduleClasses.iterator();
         while (it.hasNext()) {
             if (it.next().getId().equals(fitClassId)) {
                 it.remove();
+                changes = true;
                 break;
             }
+        }
+        // if no changes made
+        if (!changes) {
+            return true;
         }
         // saves the schedule classes
         try {
@@ -104,5 +131,22 @@ public class StorageHelper {
             return false;
         }
         return true;
+    }
+
+    /**
+     * returns a schedule class from file
+     * @param context
+     * @param fitClassId
+     * @return
+     * @throws IOException
+     */
+    public static FitClass loadScheduleClass(Context context, String fitClassId) throws IOException {
+        List<FitClass> fclasses = loadScheduleClasses(context);
+        for(FitClass fclass : fclasses) {
+            if (fclass.getId().equals(fitClassId)) {
+                return fclass;
+            }
+        }
+        return null;
     }
 }
