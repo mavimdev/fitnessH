@@ -120,7 +120,7 @@ public class ClassesActivity extends AppCompatActivity implements UpdateDataInte
     public void updateTodayData() {
         if (adapter != null) {
             UpdateClassesInterface requestFragment = (UpdateClassesInterface) adapter.getItem(FitHelper.TODAY_CLASSES_TAB);
-            requestFragment.refreshCurrentClasses();
+            requestFragment.refreshCurrentClasses(this.getApplicationContext());
         }
     }
 
@@ -128,7 +128,7 @@ public class ClassesActivity extends AppCompatActivity implements UpdateDataInte
     public void updateTomorrowData() {
         if (adapter != null) {
             UpdateClassesInterface requestFragment = (UpdateClassesInterface) adapter.getItem(FitHelper.TOMORROW_CLASSES_TAB);
-            requestFragment.refreshCurrentClasses();
+            requestFragment.refreshCurrentClasses(this.getApplicationContext());
         }
     }
 
@@ -137,7 +137,7 @@ public class ClassesActivity extends AppCompatActivity implements UpdateDataInte
     public void updateReservedData() {
         if (adapter != null) {
             UpdateClassesInterface requestFragment = (UpdateClassesInterface) adapter.getItem(FitHelper.RESERVED_CLASSES_TAB);
-            requestFragment.refreshCurrentClasses();
+            requestFragment.refreshCurrentClasses(this.getApplicationContext());
         }
     }
 

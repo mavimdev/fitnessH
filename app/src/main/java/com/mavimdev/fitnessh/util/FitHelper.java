@@ -46,7 +46,8 @@ public class FitHelper {
     public static final String COM_MAVIM_FITNESS_FIT_CLASS_ID = "com.mavim.fitnessH.fitClassId";
     public static final String SCHEDULE_INFO_FILE = "scheduleclasses.fit";
     public static final String CLASS_NOT_AVAILABLE = "NÃO PODE RESERVAR A AULA! AULA INDISPONÍVEL.";
-    public static final String CLASS_RESERVED = "AULA RESERVADA.";
+    public static final String CLASS_RESERVED = "AULA RESERVADA";
+    public static final String SUCCESS = "success";
     public static final int REQUEST_FAVORITE_CODE = 1;
     public static final String REFRESH_CLASSES = "fit_refresh_classes";
 
@@ -118,9 +119,7 @@ public class FitHelper {
 
 
     public static Calendar calculateEnrollmentClassDate(FitClass fitClass) throws ParseException {
-        Calendar classDate = Calendar.getInstance();
-        classDate.setTime(new SimpleDateFormat("yyyy-MM-dd|H:mm")
-                .parse(fitClass.getDate().concat("|").concat(fitClass.getHorario())));
+        Calendar classDate = getClassDate(fitClass);
         // get x hours before class - when the enrollment starts
         classDate.add(Calendar.HOUR, -FitHelper.HOURS_BEFORE_RESERVATION);
         return classDate;
@@ -209,5 +208,12 @@ public class FitHelper {
         sharedPrefEditor.putString(SP_FAVORITE_CLUB_ID, club.getId());
         sharedPrefEditor.putString(SP_FAVORITE_CLUB_TITLE, club.getTitle());
         sharedPrefEditor.apply();
+    }
+
+    public static Calendar getClassDate(FitClass fitClass) throws ParseException {
+        Calendar classDate = Calendar.getInstance();
+        classDate.setTime(new SimpleDateFormat("yyyy-MM-dd|H:mm")
+                .parse(fitClass.getDate().concat("|").concat(fitClass.getHorario())));
+        return classDate;
     }
 }

@@ -2,6 +2,7 @@ package com.mavimdev.fitnessh.fragment;
 
 
 import android.annotation.SuppressLint;
+import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
@@ -46,7 +47,7 @@ public class TodayClassesFragment extends Fragment implements UpdateClassesInter
         recyclerView = (RecyclerView) inflater.inflate(
                 R.layout.recycler_view, container, false);
 
-        this.loadData();
+        this.loadData(getActivity());
 
         recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
@@ -55,7 +56,7 @@ public class TodayClassesFragment extends Fragment implements UpdateClassesInter
 
 
     @SuppressLint("CheckResult")
-    public void loadData() {
+    public void loadData(Context context) {
         ArrayList<FitClass> reservedClassesAux = new ArrayList<>();
 
         /*Create handle for the RetrofitInstance interface*/
@@ -71,7 +72,9 @@ public class TodayClassesFragment extends Fragment implements UpdateClassesInter
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(todayClasses ->
                         {
-                            List<FitClass> scheduleClasses = StorageHelper.loadScheduleClasses(getContext());
+                            List<FitClass> scheduleClasses = StorageHelper.loadScheduleClasses(context);
+                            // remove schedule classes expired or already reserved
+                            StorageHelper.cleanAndMergeClasses(TodayClassesFragment.this.getContext(), scheduleClasses, reservedClassesAux);
 
                             for (FitClass fit : todayClasses) {
                                 fit.setCtitle(FitHelper.fitnessHutClubTitle);
@@ -83,12 +86,12 @@ public class TodayClassesFragment extends Fragment implements UpdateClassesInter
                             adapter.refresh();
                             recyclerView.setAdapter(adapter);
                         },
-                        err -> Toast.makeText(TodayClassesFragment.this.getContext(), "Ocorreu um erro.. tente mais tarde!", Toast.LENGTH_SHORT).show()
+                        err -> Toast.makeText(context, "Ocorreu um erro.. tente mais tarde!", Toast.LENGTH_SHORT).show()
                 );
     }
 
     @Override
-    public void refreshOtherClasses() {
+    public void refreshOtherClasses(Context context) {
         // if current classes were changed, update reserved classes
         if (mainActivityClasses != null) {
             mainActivityClasses.updateReservedData();
@@ -97,8 +100,8 @@ public class TodayClassesFragment extends Fragment implements UpdateClassesInter
 
     // update classes
     @Override
-    public void refreshCurrentClasses() {
-        loadData();
+    public void refreshCurrentClasses(Context context) {
+        loadData(context);
     }
 
     public void setMainActivityClasses(UpdateDataInterface mainActivityClasses) {

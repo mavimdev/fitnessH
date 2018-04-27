@@ -296,7 +296,10 @@ public class FitClass {
         // if different class description
         if (!aulan.equals(fitClass.aulan)) return false;
         // if different clubs
-        if (!(ctitle != null ? ctitle : title).equals(fitClass.title != null ? fitClass.title : fitClass.ctitle)) return false;
+        if (ctitle != null || title != null) {
+            if (!(ctitle != null ? ctitle : title).equals(fitClass.title != null ? fitClass.title : fitClass.ctitle))
+                return false;
+        }
         // if both daily classes
         if (horario != null && fitClass.horario != null && !id.equals(fitClass.id)) return false;
         // if both reserved classes

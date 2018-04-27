@@ -2,6 +2,7 @@ package com.mavimdev.fitnessh.fragment;
 
 
 import android.annotation.SuppressLint;
+import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
@@ -48,7 +49,7 @@ public class ReservedClassesFragment extends Fragment implements UpdateClassesIn
         recyclerView = (RecyclerView) inflater.inflate(
                 R.layout.recycler_view, container, false);
 
-        this.loadData();
+        this.loadData(getActivity());
 
         recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
@@ -56,7 +57,7 @@ public class ReservedClassesFragment extends Fragment implements UpdateClassesIn
     }
 
     @SuppressLint("CheckResult")
-    public void loadData() {
+    public void loadData(Context context) {
         /*Create handle for the RetrofitInstance interface*/
         FitnessDataService service = RetrofitInstance.getRetrofitInstance().create(FitnessDataService.class);
         /*Call the method to get the classes data*/
@@ -69,7 +70,7 @@ public class ReservedClassesFragment extends Fragment implements UpdateClassesIn
                                 // on the reserved classes, the fields are different
                             }
 
-                            List<FitClass> scheduleClasses = StorageHelper.loadScheduleClasses(getContext());
+                            List<FitClass> scheduleClasses = StorageHelper.loadScheduleClasses(context);
                             for (FitClass fclass : scheduleClasses) {
                                 fclass.setClassState(ClassState.SCHEDULE);
                             }
@@ -79,14 +80,16 @@ public class ReservedClassesFragment extends Fragment implements UpdateClassesIn
                             ClassAdapter adapter = new ClassAdapter(reservedClasses);
                             adapter.setReloadFragment(this);
                             adapter.refresh();
-                            recyclerView.setAdapter(adapter);
+                            if (recyclerView != null) {
+                                recyclerView.setAdapter(adapter);
+                            }
                         }, err ->
-                                Toast.makeText(ReservedClassesFragment.this.getContext(), "Ocorreu um erro.. por favor tente novamente!", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(context, "Ocorreu um erro.. por favor tente novamente!", Toast.LENGTH_SHORT).show()
                 );
     }
 
     @Override
-    public void refreshOtherClasses() {
+    public void refreshOtherClasses(Context context) {
         if (updateData != null) {
             updateData.updateTodayData();
             updateData.updateTomorrowData();
@@ -94,8 +97,8 @@ public class ReservedClassesFragment extends Fragment implements UpdateClassesIn
     }
 
     @Override
-    public void refreshCurrentClasses() {
-        loadData();
+    public void refreshCurrentClasses(Context context) {
+        loadData(context);
     }
 
     public void setUpdateData(UpdateDataInterface updateData) {

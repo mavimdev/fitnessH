@@ -12,7 +12,9 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Iterator;
 import java.util.List;
 
@@ -20,6 +22,7 @@ public class StorageHelper {
 
     /**
      * Adds a schedule class to the exist ones
+     *
      * @param context
      * @param fitClass
      * @return
@@ -48,6 +51,7 @@ public class StorageHelper {
 
     /**
      * saves the schedules classes on file
+     *
      * @param context
      * @param scheduleClasses
      * @throws IOException
@@ -67,6 +71,7 @@ public class StorageHelper {
 
     /**
      * loads the schedule classes from file
+     *
      * @param context
      * @return
      * @throws IOException
@@ -98,6 +103,7 @@ public class StorageHelper {
 
     /**
      * Removes a schedule class from file
+     *
      * @param context
      * @param fitClassId
      * @return
@@ -135,6 +141,7 @@ public class StorageHelper {
 
     /**
      * returns a schedule class from file
+     *
      * @param context
      * @param fitClassId
      * @return
@@ -142,11 +149,42 @@ public class StorageHelper {
      */
     public static FitClass loadScheduleClass(Context context, String fitClassId) throws IOException {
         List<FitClass> fclasses = loadScheduleClasses(context);
-        for(FitClass fclass : fclasses) {
+        for (FitClass fclass : fclasses) {
             if (fclass.getId().equals(fitClassId)) {
                 return fclass;
             }
         }
         return null;
+    }
+
+    // remove schedule classes not valid anymore
+    public static void cleanAndMergeClasses(Context context, List<FitClass> scheduleClasses, ArrayList<FitClass> reservedClassesAux) {
+        List<FitClass> classesToRemove = new ArrayList<>();
+        Iterator<FitClass> it = scheduleClasses.iterator();
+
+        while (it.hasNext()) {
+            FitClass f = it.next();
+            // remove schedule classes before 1 hour ago
+            try {
+                Calendar hourAgo = Calendar.getInstance();
+                hourAgo.add(Calendar.HOUR_OF_DAY, -1);
+                if (FitHelper.getClassDate(f).before(hourAgo)) {
+                    classesToRemove.add(f);
+                    it.remove();
+                }
+            } catch (ParseException e) {
+                continue;
+            }
+            // remove if the class is already reserved
+            if (reservedClassesAux.contains(f)) {
+                classesToRemove.add(f);
+                it.remove();
+            }
+        }
+
+        // remove schedule from storage
+        for (FitClass f : classesToRemove) {
+            StorageHelper.removeScheduleClass(context, f.getId());
+        }
     }
 }

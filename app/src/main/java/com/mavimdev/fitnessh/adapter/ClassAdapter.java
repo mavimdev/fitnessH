@@ -31,8 +31,8 @@ import java.util.Calendar;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.functions.Predicate;
 import io.reactivex.schedulers.Schedulers;
 
 /**
@@ -91,15 +91,19 @@ public class ClassAdapter extends RecyclerView.Adapter<ClassAdapter.ClassViewHol
                     .subscribeOn(Schedulers.io())
                     .observeOn(AndroidSchedulers.mainThread())
                     .repeatWhen(observable -> observable.delay(FitHelper.ATTEMPTS_SECONDS_REPEAT, TimeUnit.SECONDS))
-                    .takeWhile(response -> response.get(0).getStatus().equals(FitHelper.CLASS_NOT_AVAILABLE))
+                    // o takeWhile é chamado antes do subscribe e dos outros.
+                    // se nao passar na condição, não chama o subscribe nem nenhum dos outros.
+//                    .takeWhile(response -> response.get(0).getStatus().equals(FitHelper.CLASS_NOT_AVAILABLE))
+                    .takeUntil((Predicate<? super ArrayList<FitStatus>>) response -> response.get(0).getStatus().equalsIgnoreCase(FitHelper.CLASS_RESERVED))
                     .takeUntil(observable -> attemptsCount.get() >= FitHelper.MAX_ATTEMPTS)
                     .subscribe(response -> {
                                 attemptsCount.getAndIncrement();
-                                if (response.get(0).getStatus().equals(FitHelper.CLASS_RESERVED)) {
+                                if (response.get(0).getStatus().equalsIgnoreCase(FitHelper.CLASS_RESERVED)) {
                                     fitClass.setClassState(ClassState.RESERVED);
+                                    FitHelper.tintClass(fitClass, holder.swBtnReserveClass);
                                     // refresh reserved classes fragment
                                     if (this.reloadFragment != null) {
-                                        this.reloadFragment.refreshOtherClasses();
+                                        this.reloadFragment.refreshOtherClasses(holder.itemView.getContext());
                                     }
                                 }
                                 if (!response.get(0).getStatus().equals(FitHelper.CLASS_NOT_AVAILABLE)) {
@@ -111,6 +115,7 @@ public class ClassAdapter extends RecyclerView.Adapter<ClassAdapter.ClassViewHol
         } else if (fitClass.getClassState() == ClassState.SOLD_OUT) {
             // keep trying until availability ?
             Toast.makeText(holder.itemView.getContext(), "Opção de aguardar vaga ainda não disponível.", Toast.LENGTH_SHORT).show();
+            FitHelper.tintClass(fitClass, holder.swBtnReserveClass);
 
         } else if (fitClass.getClassState() == ClassState.UNAVAILABLE) {
             // schedule the enrollment
@@ -147,9 +152,8 @@ public class ClassAdapter extends RecyclerView.Adapter<ClassAdapter.ClassViewHol
             }
 
             fitClass.setClassState(ClassState.SCHEDULE);
+            FitHelper.tintClass(fitClass, holder.swBtnReserveClass);
         }
-
-        FitHelper.tintClass(fitClass, holder.swBtnReserveClass);
     }
 
 
@@ -157,20 +161,59 @@ public class ClassAdapter extends RecyclerView.Adapter<ClassAdapter.ClassViewHol
     private void uncheckClass(final ClassViewHolder holder, FitClass fitClass) {
         if (fitClass.getClassState() == ClassState.RESERVED) {
             FitnessDataService service = RetrofitInstance.getRetrofitInstance().create(FitnessDataService.class);
-            Observable<ArrayList<FitStatus>> call = service.unbookClass(fitClass.getAid());
-            call.subscribeOn(Schedulers.io())
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(response -> {
-                                fitClass.setClassState(null);
-                                FitHelper.classifyClass(fitClass);
-                                FitHelper.tintClass(fitClass, holder.swBtnReserveClass);
-                                Toast.makeText(holder.itemView.getContext(), "Reserva cancelada.", Toast.LENGTH_LONG).show();
-                                // refresh reserved classes fragment
-                                if (this.reloadFragment != null) {
-                                    this.reloadFragment.refreshOtherClasses();
+            // if we don't have the aid of class (reserved), we get it from the reserved classes
+
+
+            if (fitClass.getAid() == null) {
+                service.getReservedClasses(FitHelper.clientId)
+                        .flatMap(reservedClasses ->
+                        {
+                            for (FitClass f : reservedClasses) {
+                                if (f.equals(fitClass)) {
+                                    fitClass.setAid(f.getId());
                                 }
-                            }, err -> Toast.makeText(holder.itemView.getContext(), "Erro a cancelar reserva.", Toast.LENGTH_LONG).show()
-                    );
+                            }
+                            return service.unbookClass(fitClass.getAid());
+                        }).subscribeOn(Schedulers.io())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(response -> {
+                                    if (response.get(0).getStatus().equalsIgnoreCase(FitHelper.SUCCESS)) {
+                                        fitClass.setClassState(null);
+                                        FitHelper.classifyClass(fitClass);
+                                        FitHelper.tintClass(fitClass, holder.swBtnReserveClass);
+                                        Toast.makeText(holder.itemView.getContext(), "Reserva cancelada.", Toast.LENGTH_LONG).show();
+                                        // refresh reserved classes fragment
+                                        if (this.reloadFragment != null) {
+                                            this.reloadFragment.refreshOtherClasses(holder.itemView.getContext());
+                                        }
+                                    } else {
+                                        Toast.makeText(holder.itemView.getContext(), response.get(0).getStatus(), Toast.LENGTH_LONG).show();
+                                    }
+
+                                }, err -> Toast.makeText(holder.itemView.getContext(), "Erro a cancelar reserva.", Toast.LENGTH_LONG).show()
+                        );
+            } else {
+                service.unbookClass(fitClass.getAid())
+                        .subscribeOn(Schedulers.io())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(response -> {
+                                    if (response.get(0).getStatus().equalsIgnoreCase(FitHelper.SUCCESS)) {
+                                        fitClass.setClassState(null);
+                                        FitHelper.classifyClass(fitClass);
+                                        FitHelper.tintClass(fitClass, holder.swBtnReserveClass);
+                                        Toast.makeText(holder.itemView.getContext(), "Reserva cancelada.", Toast.LENGTH_LONG).show();
+                                        // refresh reserved classes fragment
+                                        if (this.reloadFragment != null) {
+                                            this.reloadFragment.refreshOtherClasses(holder.itemView.getContext());
+                                        }
+                                    } else {
+                                        Toast.makeText(holder.itemView.getContext(), response.get(0).getStatus(), Toast.LENGTH_LONG).show();
+                                    }
+
+                                }, err -> Toast.makeText(holder.itemView.getContext(), "Erro a cancelar reserva.", Toast.LENGTH_LONG).show()
+                        );
+            }
+
         } else if (fitClass.getClassState() == ClassState.SCHEDULE) {
             // remove schedule (alarm manager)
             AlarmManager manager = (AlarmManager) holder.itemView.getContext().getSystemService(Context.ALARM_SERVICE);
