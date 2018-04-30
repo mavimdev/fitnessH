@@ -25,12 +25,15 @@ import com.mavimdev.fitnessh.util.ClassState;
 import com.mavimdev.fitnessh.util.FitHelper;
 import com.mavimdev.fitnessh.util.StorageHelper;
 
+import java.security.InvalidParameterException;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import io.reactivex.Maybe;
+import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.functions.Predicate;
 import io.reactivex.schedulers.Schedulers;
@@ -94,7 +97,7 @@ public class ClassAdapter extends RecyclerView.Adapter<ClassAdapter.ClassViewHol
                     // o takeWhile é chamado antes do subscribe e dos outros.
                     // se nao passar na condição, não chama o subscribe nem nenhum dos outros.
 //                    .takeWhile(response -> response.get(0).getStatus().equals(FitHelper.CLASS_NOT_AVAILABLE))
-                    .takeUntil((Predicate<? super ArrayList<FitStatus>>) response -> response.get(0).getStatus().equalsIgnoreCase(FitHelper.CLASS_RESERVED))
+                    .takeUntil((Predicate<? super ArrayList<FitStatus>>) response -> !response.get(0).getStatus().equalsIgnoreCase(FitHelper.CLASS_NOT_AVAILABLE))
                     .takeUntil(observable -> attemptsCount.get() >= FitHelper.MAX_ATTEMPTS)
                     .subscribe(response -> {
                                 attemptsCount.getAndIncrement();
@@ -156,64 +159,101 @@ public class ClassAdapter extends RecyclerView.Adapter<ClassAdapter.ClassViewHol
         }
     }
 
+    @SuppressLint("CheckResult")
+    private void subscribe(Observable<ArrayList<FitStatus>> observable, FitClass fitClass, ClassViewHolder holder) {
+        observable.subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(response -> {
+                            if (response.get(0).getStatus().equalsIgnoreCase(FitHelper.SUCCESS)) {
+                                fitClass.setClassState(null);
+                                FitHelper.classifyClass(fitClass);
+                                FitHelper.tintClass(fitClass, holder.swBtnReserveClass);
+                                Toast.makeText(holder.itemView.getContext(), "Reserva cancelada.", Toast.LENGTH_LONG).show();
+                                // refresh reserved classes fragment
+                                if (this.reloadFragment != null) {
+                                    this.reloadFragment.refreshOtherClasses(holder.itemView.getContext());
+                                }
+                            } else {
+                                Toast.makeText(holder.itemView.getContext(), response.get(0).getStatus(), Toast.LENGTH_LONG).show();
+                            }
+
+                        }, err -> Toast.makeText(holder.itemView.getContext(), "Erro a cancelar reserva.", Toast.LENGTH_LONG).show()
+                );
+    }
 
     @SuppressLint("CheckResult")
     private void uncheckClass(final ClassViewHolder holder, FitClass fitClass) {
         if (fitClass.getClassState() == ClassState.RESERVED) {
             FitnessDataService service = RetrofitInstance.getRetrofitInstance().create(FitnessDataService.class);
+
+            Maybe.fromCallable(() -> fitClass.getAid())
+                    .switchIfEmpty(service.getReservedClasses(FitHelper.clientId)
+                            .flatMap(reservedClasses -> {
+                                for (FitClass f : reservedClasses) {
+                                    if (f.equals(fitClass)) {
+                                        return Maybe.just(f.getId());
+                                    }
+                                }
+                                return Maybe.error(InvalidParameterException::new);
+                            }))
+                    .flatMap(service::unbookClass)
+                    .subscribeOn(Schedulers.io())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(response -> {
+                                if (response.get(0).getStatus().equalsIgnoreCase(FitHelper.SUCCESS)) {
+                                    fitClass.setClassState(null);
+                                    FitHelper.classifyClass(fitClass);
+                                    FitHelper.tintClass(fitClass, holder.swBtnReserveClass);
+                                    Toast.makeText(holder.itemView.getContext(), R.string.book_cancelled, Toast.LENGTH_LONG).show();
+                                    // refresh reserved classes fragment
+                                    if (this.reloadFragment != null) {
+                                        this.reloadFragment.refreshOtherClasses(holder.itemView.getContext());
+                                    }
+                                } else {
+                                    Toast.makeText(holder.itemView.getContext(), response.get(0).getStatus(), Toast.LENGTH_LONG).show();
+                                }
+
+                            }, err -> Toast.makeText(holder.itemView.getContext(), R.string.error_cancelling_reserve, Toast.LENGTH_LONG).show()
+                    );
+
+
+            /*
             // if we don't have the aid of class (reserved), we get it from the reserved classes
-
-
+            Observable<String> idObservable;
             if (fitClass.getAid() == null) {
-                service.getReservedClasses(FitHelper.clientId)
-                        .flatMap(reservedClasses ->
-                        {
+                idObservable = service.getReservedClasses(FitHelper.clientId)
+                        .flatMap(reservedClasses -> {
                             for (FitClass f : reservedClasses) {
                                 if (f.equals(fitClass)) {
-                                    fitClass.setAid(f.getId());
+                                    return Observable.just(f.getId());
                                 }
                             }
-                            return service.unbookClass(fitClass.getAid());
-                        }).subscribeOn(Schedulers.io())
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .subscribe(response -> {
-                                    if (response.get(0).getStatus().equalsIgnoreCase(FitHelper.SUCCESS)) {
-                                        fitClass.setClassState(null);
-                                        FitHelper.classifyClass(fitClass);
-                                        FitHelper.tintClass(fitClass, holder.swBtnReserveClass);
-                                        Toast.makeText(holder.itemView.getContext(), "Reserva cancelada.", Toast.LENGTH_LONG).show();
-                                        // refresh reserved classes fragment
-                                        if (this.reloadFragment != null) {
-                                            this.reloadFragment.refreshOtherClasses(holder.itemView.getContext());
-                                        }
-                                    } else {
-                                        Toast.makeText(holder.itemView.getContext(), response.get(0).getStatus(), Toast.LENGTH_LONG).show();
-                                    }
-
-                                }, err -> Toast.makeText(holder.itemView.getContext(), "Erro a cancelar reserva.", Toast.LENGTH_LONG).show()
-                        );
+                            return Observable.error(InvalidParameterException::new);
+                        });
             } else {
-                service.unbookClass(fitClass.getAid())
-                        .subscribeOn(Schedulers.io())
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .subscribe(response -> {
-                                    if (response.get(0).getStatus().equalsIgnoreCase(FitHelper.SUCCESS)) {
-                                        fitClass.setClassState(null);
-                                        FitHelper.classifyClass(fitClass);
-                                        FitHelper.tintClass(fitClass, holder.swBtnReserveClass);
-                                        Toast.makeText(holder.itemView.getContext(), "Reserva cancelada.", Toast.LENGTH_LONG).show();
-                                        // refresh reserved classes fragment
-                                        if (this.reloadFragment != null) {
-                                            this.reloadFragment.refreshOtherClasses(holder.itemView.getContext());
-                                        }
-                                    } else {
-                                        Toast.makeText(holder.itemView.getContext(), response.get(0).getStatus(), Toast.LENGTH_LONG).show();
-                                    }
-
-                                }, err -> Toast.makeText(holder.itemView.getContext(), "Erro a cancelar reserva.", Toast.LENGTH_LONG).show()
-                        );
+                idObservable = Observable.just(fitClass.getAid());
             }
 
+            idObservable.flatMap(service::unbookClass)
+                    .subscribeOn(Schedulers.io())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(response -> {
+                                if (response.get(0).getStatus().equalsIgnoreCase(FitHelper.SUCCESS)) {
+                                    fitClass.setClassState(null);
+                                    FitHelper.classifyClass(fitClass);
+                                    FitHelper.tintClass(fitClass, holder.swBtnReserveClass);
+                                    Toast.makeText(holder.itemView.getContext(), R.string.book_cancelled, Toast.LENGTH_LONG).show();
+                                    // refresh reserved classes fragment
+                                    if (this.reloadFragment != null) {
+                                        this.reloadFragment.refreshOtherClasses(holder.itemView.getContext());
+                                    }
+                                } else {
+                                    Toast.makeText(holder.itemView.getContext(), response.get(0).getStatus(), Toast.LENGTH_LONG).show();
+                                }
+
+                            }, err -> Toast.makeText(holder.itemView.getContext(), R.string.error_cancelling_reserve, Toast.LENGTH_LONG).show()
+                    );
+*/
         } else if (fitClass.getClassState() == ClassState.SCHEDULE) {
             // remove schedule (alarm manager)
             AlarmManager manager = (AlarmManager) holder.itemView.getContext().getSystemService(Context.ALARM_SERVICE);

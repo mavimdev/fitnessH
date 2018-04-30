@@ -16,7 +16,7 @@ import com.mavimdev.fitnessh.util.FitHelper;
 
 import java.util.ArrayList;
 
-import io.reactivex.Observable;
+import io.reactivex.Maybe;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
 
@@ -49,7 +49,7 @@ public class LoginActivity extends AppCompatActivity {
         }
 
         FitnessDataService service = RetrofitInstance.getRetrofitInstance().create(FitnessDataService.class);
-        Observable<ArrayList<FitClient>> call = service.doLogin(email, password);
+        Maybe<ArrayList<FitClient>> call = service.doLogin(email, password);
         call.subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(fitClient -> {

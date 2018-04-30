@@ -28,4 +28,6 @@
     <string name="title_activity_favorite_club">Clube Favorito</string>
     <string name="title_activity_teste">testeActivity</string>
     <string name="class_reserved">Aula reservada com sucesso</string>
+    <string name="book_cancelled">Reserva cancelada.</string>
+    <string name="error_cancelling_reserve">Erro a cancelar reserva.</string>
 </resources>

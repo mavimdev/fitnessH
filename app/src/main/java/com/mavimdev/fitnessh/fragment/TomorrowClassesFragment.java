@@ -23,7 +23,7 @@ import com.mavimdev.fitnessh.util.StorageHelper;
 import java.util.ArrayList;
 import java.util.List;
 
-import io.reactivex.Observable;
+import io.reactivex.Maybe;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
 
@@ -58,7 +58,7 @@ public class TomorrowClassesFragment extends Fragment implements UpdateClassesIn
         /*Create handle for the RetrofitInstance interface*/
         FitnessDataService service = RetrofitInstance.getRetrofitInstance().create(FitnessDataService.class);
         /*Call the method to get the classes data*/
-        Observable<ArrayList<FitClass>> call = service.getTomorrowClasses(FitHelper.fitnessHutClubId, FitHelper.packFitnessHut);
+        Maybe<ArrayList<FitClass>> call = service.getTomorrowClasses(FitHelper.fitnessHutClubId, FitHelper.packFitnessHut);
         call.subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(tomorrowClasses -> {
