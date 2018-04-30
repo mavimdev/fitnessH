@@ -10,6 +10,7 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.mavimdev.fitnessh.R;
@@ -25,6 +26,7 @@ import java.util.List;
 
 import io.reactivex.Maybe;
 import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
 
 
@@ -36,6 +38,8 @@ public class TodayClassesFragment extends Fragment implements UpdateClassesInter
     private UpdateDataInterface mainActivityClasses;
     private RecyclerView recyclerView = null;
     private ClassAdapter adapter = null;
+    ProgressBar progressBar = null;
+    Disposable disposable = null;
 
     public TodayClassesFragment() {
         // Required empty public constructor
@@ -47,6 +51,7 @@ public class TodayClassesFragment extends Fragment implements UpdateClassesInter
         recyclerView = (RecyclerView) inflater.inflate(
                 R.layout.recycler_view, container, false);
 
+        progressBar = getActivity().findViewById(R.id.progressbar);
         this.loadData(getActivity());
 
         recyclerView.setHasFixedSize(true);
@@ -63,8 +68,10 @@ public class TodayClassesFragment extends Fragment implements UpdateClassesInter
         FitnessDataService service = RetrofitInstance.getRetrofitInstance().create(FitnessDataService.class);
 
         /*Call the method to get the classes data*/
+
+        progressBar.setVisibility(View.VISIBLE);
         Maybe<ArrayList<FitClass>> call = service.getReservedClasses(FitHelper.clientId);
-        call.subscribeOn(Schedulers.io())
+        disposable = call.subscribeOn(Schedulers.io())
                 .flatMap(reservedClasses -> {
                     reservedClassesAux.addAll(reservedClasses);
                     return service.getTodayClasses(FitHelper.fitnessHutClubId, FitHelper.packFitnessHut);
@@ -84,8 +91,13 @@ public class TodayClassesFragment extends Fragment implements UpdateClassesInter
                             adapter.setReloadFragment(this);
                             adapter.refresh();
                             recyclerView.setAdapter(adapter);
+                            progressBar.setVisibility(View.GONE);
                         },
-                        err -> Toast.makeText(context, "Ocorreu um erro.. tente mais tarde!", Toast.LENGTH_SHORT).show()
+                        err -> {
+                            progressBar.setVisibility(View.GONE);
+                            Toast.makeText(context, "Ocorreu um erro.. tente mais tarde!", Toast.LENGTH_SHORT).show();
+                        }
+
                 );
     }
 
@@ -105,5 +117,13 @@ public class TodayClassesFragment extends Fragment implements UpdateClassesInter
 
     public void setMainActivityClasses(UpdateDataInterface mainActivityClasses) {
         this.mainActivityClasses = mainActivityClasses;
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        if (disposable != null && !disposable.isDisposed()) {
+            disposable.dispose();
+        }
     }
 }

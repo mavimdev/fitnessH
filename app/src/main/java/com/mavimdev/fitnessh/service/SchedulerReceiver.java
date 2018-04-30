@@ -12,6 +12,7 @@ import android.util.Log;
 import com.mavimdev.fitnessh.R;
 import com.mavimdev.fitnessh.activity.MainActivity;
 import com.mavimdev.fitnessh.model.FitClass;
+import com.mavimdev.fitnessh.model.FitStatus;
 import com.mavimdev.fitnessh.network.FitnessDataService;
 import com.mavimdev.fitnessh.network.RetrofitInstance;
 import com.mavimdev.fitnessh.util.FitHelper;
@@ -19,10 +20,12 @@ import com.mavimdev.fitnessh.util.StorageHelper;
 
 import java.io.IOException;
 import java.security.InvalidParameterException;
+import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.functions.Predicate;
 import io.reactivex.schedulers.Schedulers;
 
 /**
@@ -56,7 +59,7 @@ public class SchedulerReceiver extends BroadcastReceiver {
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .repeatWhen(observable -> observable.delay(FitHelper.ATTEMPTS_SECONDS_REPEAT, TimeUnit.SECONDS))
-                .takeWhile(response -> response.get(0).getStatus().equals(FitHelper.CLASS_NOT_AVAILABLE))
+                .takeUntil((Predicate<? super ArrayList<FitStatus>>) response -> !response.get(0).getStatus().equalsIgnoreCase(FitHelper.CLASS_NOT_AVAILABLE))
                 .takeUntil(observable -> attemptsCount.get() >= FitHelper.MAX_ATTEMPTS)
                 .subscribe(response -> {
                             attemptsCount.getAndIncrement();

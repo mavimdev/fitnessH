@@ -10,6 +10,7 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.mavimdev.fitnessh.R;
@@ -26,6 +27,7 @@ import java.util.List;
 
 import io.reactivex.Maybe;
 import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
 
 
@@ -36,6 +38,7 @@ public class ReservedClassesFragment extends Fragment implements UpdateClassesIn
 
     private UpdateDataInterface updateData;
     private RecyclerView recyclerView = null;
+    Disposable disposable = null;
 
     public ReservedClassesFragment() {
         // Required empty public constructor
@@ -62,7 +65,7 @@ public class ReservedClassesFragment extends Fragment implements UpdateClassesIn
         FitnessDataService service = RetrofitInstance.getRetrofitInstance().create(FitnessDataService.class);
         /*Call the method to get the classes data*/
         Maybe<ArrayList<FitClass>> call = service.getReservedClasses(FitHelper.clientId);
-        call.subscribeOn(Schedulers.io())
+        disposable = call.subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(reservedClasses -> {
                             for (FitClass fc : reservedClasses) {
@@ -83,8 +86,9 @@ public class ReservedClassesFragment extends Fragment implements UpdateClassesIn
                             if (recyclerView != null) {
                                 recyclerView.setAdapter(adapter);
                             }
-                        }, err ->
-                                Toast.makeText(context, "Ocorreu um erro.. por favor tente novamente!", Toast.LENGTH_SHORT).show()
+                        }, err -> {
+                            Toast.makeText(context, "Ocorreu um erro.. por favor tente novamente!", Toast.LENGTH_SHORT).show();
+                        }
                 );
     }
 
@@ -105,4 +109,11 @@ public class ReservedClassesFragment extends Fragment implements UpdateClassesIn
         this.updateData = updateData;
     }
 
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        if (disposable != null && !disposable.isDisposed()) {
+            disposable.dispose();
+        }
+    }
 }

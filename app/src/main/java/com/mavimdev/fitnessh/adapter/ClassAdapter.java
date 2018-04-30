@@ -94,9 +94,6 @@ public class ClassAdapter extends RecyclerView.Adapter<ClassAdapter.ClassViewHol
                     .subscribeOn(Schedulers.io())
                     .observeOn(AndroidSchedulers.mainThread())
                     .repeatWhen(observable -> observable.delay(FitHelper.ATTEMPTS_SECONDS_REPEAT, TimeUnit.SECONDS))
-                    // o takeWhile é chamado antes do subscribe e dos outros.
-                    // se nao passar na condição, não chama o subscribe nem nenhum dos outros.
-//                    .takeWhile(response -> response.get(0).getStatus().equals(FitHelper.CLASS_NOT_AVAILABLE))
                     .takeUntil((Predicate<? super ArrayList<FitStatus>>) response -> !response.get(0).getStatus().equalsIgnoreCase(FitHelper.CLASS_NOT_AVAILABLE))
                     .takeUntil(observable -> attemptsCount.get() >= FitHelper.MAX_ATTEMPTS)
                     .subscribe(response -> {
@@ -216,44 +213,6 @@ public class ClassAdapter extends RecyclerView.Adapter<ClassAdapter.ClassViewHol
                             }, err -> Toast.makeText(holder.itemView.getContext(), R.string.error_cancelling_reserve, Toast.LENGTH_LONG).show()
                     );
 
-
-            /*
-            // if we don't have the aid of class (reserved), we get it from the reserved classes
-            Observable<String> idObservable;
-            if (fitClass.getAid() == null) {
-                idObservable = service.getReservedClasses(FitHelper.clientId)
-                        .flatMap(reservedClasses -> {
-                            for (FitClass f : reservedClasses) {
-                                if (f.equals(fitClass)) {
-                                    return Observable.just(f.getId());
-                                }
-                            }
-                            return Observable.error(InvalidParameterException::new);
-                        });
-            } else {
-                idObservable = Observable.just(fitClass.getAid());
-            }
-
-            idObservable.flatMap(service::unbookClass)
-                    .subscribeOn(Schedulers.io())
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(response -> {
-                                if (response.get(0).getStatus().equalsIgnoreCase(FitHelper.SUCCESS)) {
-                                    fitClass.setClassState(null);
-                                    FitHelper.classifyClass(fitClass);
-                                    FitHelper.tintClass(fitClass, holder.swBtnReserveClass);
-                                    Toast.makeText(holder.itemView.getContext(), R.string.book_cancelled, Toast.LENGTH_LONG).show();
-                                    // refresh reserved classes fragment
-                                    if (this.reloadFragment != null) {
-                                        this.reloadFragment.refreshOtherClasses(holder.itemView.getContext());
-                                    }
-                                } else {
-                                    Toast.makeText(holder.itemView.getContext(), response.get(0).getStatus(), Toast.LENGTH_LONG).show();
-                                }
-
-                            }, err -> Toast.makeText(holder.itemView.getContext(), R.string.error_cancelling_reserve, Toast.LENGTH_LONG).show()
-                    );
-*/
         } else if (fitClass.getClassState() == ClassState.SCHEDULE) {
             // remove schedule (alarm manager)
             AlarmManager manager = (AlarmManager) holder.itemView.getContext().getSystemService(Context.ALARM_SERVICE);
