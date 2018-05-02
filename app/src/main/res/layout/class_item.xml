@@ -42,9 +42,7 @@
             android:id="@+id/sw_btn_reserve_class"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_centerHorizontal="true"
-            android:checked="false"
-            android:textColor="#f00" /><!--red color for displayed text-->
+            android:checked="false"/>
 
     </LinearLayout>
 </android.support.v7.widget.CardView>
