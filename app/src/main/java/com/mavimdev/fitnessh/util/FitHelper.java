@@ -1,20 +1,28 @@
 package com.mavimdev.fitnessh.util;
 
+import android.app.PendingIntent;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
+import android.support.v4.app.NotificationCompat;
+import android.support.v4.app.NotificationManagerCompat;
+import android.util.Log;
 import android.widget.CompoundButton;
 
 import com.mavimdev.fitnessh.R;
+import com.mavimdev.fitnessh.activity.MainActivity;
 import com.mavimdev.fitnessh.model.FitClass;
 import com.mavimdev.fitnessh.model.FitClient;
 import com.mavimdev.fitnessh.model.FitClube;
 
+import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * Created by migue on 04/03/2018.
@@ -81,7 +89,7 @@ public class FitHelper {
                 } else {
                     fit.setClassState(ClassState.UNAVAILABLE);
                 }
-            } else if (classDate.get(Calendar.DAY_OF_MONTH) > now.get(Calendar.DAY_OF_MONTH)) {
+            } else if (classDate.after(now) && classDate.get(Calendar.DAY_OF_MONTH) != now.get(Calendar.DAY_OF_MONTH)) {
                 fit.setClassState(ClassState.UNAVAILABLE);
             }
         }
@@ -215,5 +223,57 @@ public class FitHelper {
         classDate.setTime(new SimpleDateFormat("yyyy-MM-dd|H:mm")
                 .parse(fitClass.getDate().concat("|").concat(fitClass.getHorario())));
         return classDate;
+    }
+
+
+    public static void notifyUserFitClassFromStorage(Context context, String fitClassId) {
+        FitClass fitClass;
+        try {
+            fitClass = StorageHelper.loadScheduleClass(context, fitClassId);
+        } catch (IOException e) {
+            Log.e("FitnessH", "Error loading schedule class from storage");
+            return;
+        }
+
+        // Create an explicit intent for an Activity in your app
+        Intent intent = new Intent(context, MainActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent, 0);
+
+        String contextTitle = fitClass != null ? fitClass.getTitle() + " - " + fitClass.getHorario() + " - " + fitClass.getAulan() : "";
+
+        NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(context, "SCHEDULE_NOTIFICATION")
+                .setSmallIcon(R.drawable.ic_thumb_up)
+                .setContentTitle(context.getString(R.string.class_reserved))
+                .setContentText(contextTitle)
+                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                // Set the intent that will fire when the user taps the notification
+                .setContentIntent(pendingIntent)
+                .setAutoCancel(true);
+
+        NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
+        // notificationId is a unique int for each notification that you must define
+        notificationManager.notify(Integer.valueOf(fitClassId), mBuilder.build());
+    }
+
+
+    public static void notifyUser(Context context, String title, String message) {
+        // Create an explicit intent for an Activity in your app
+        Intent intent = new Intent(context, MainActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent, 0);
+
+        NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(context, "SCHEDULE_NOTIFICATION")
+                .setSmallIcon(R.drawable.ic_thumb_up)
+                .setContentTitle(title)
+                .setContentText(message)
+                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                // Set the intent that will fire when the user taps the notification
+                .setContentIntent(pendingIntent)
+                .setAutoCancel(true);
+
+        NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
+        // notificationId is a unique int for each notification that you must define
+        notificationManager.notify(ThreadLocalRandom.current().nextInt(1000, 10000), mBuilder.build());
     }
 }

@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,7 +18,6 @@ import android.widget.Toast;
 import com.mavimdev.fitnessh.R;
 import com.mavimdev.fitnessh.fragment.UpdateClassesInterface;
 import com.mavimdev.fitnessh.model.FitClass;
-import com.mavimdev.fitnessh.model.FitStatus;
 import com.mavimdev.fitnessh.network.FitnessDataService;
 import com.mavimdev.fitnessh.network.RetrofitInstance;
 import com.mavimdev.fitnessh.service.SchedulerReceiver;
@@ -29,13 +29,10 @@ import java.security.InvalidParameterException;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import io.reactivex.Maybe;
-import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.functions.Predicate;
 import io.reactivex.schedulers.Schedulers;
 
 /**
@@ -142,6 +139,7 @@ public class ClassAdapter extends RecyclerView.Adapter<ClassAdapter.ClassViewHol
 
             if (manager != null) {
                 // sets the schedule
+                Log.i("fitnessH", "class being schedule: fitclassId: " + fitClass.getId());
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                     // Wakes up the device in Doze Mode
                     manager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, classEnrollmentDate.getTimeInMillis(), pendingIntent);
@@ -153,116 +151,99 @@ public class ClassAdapter extends RecyclerView.Adapter<ClassAdapter.ClassViewHol
 
             fitClass.setClassState(ClassState.SCHEDULE);
             FitHelper.tintClass(fitClass, holder.swBtnReserveClass);
-        }
-    }
-
-    @SuppressLint("CheckResult")
-    private void subscribe(Observable<ArrayList<FitStatus>> observable, FitClass fitClass, ClassViewHolder holder) {
-        observable.subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(response -> {
-                            if (response.get(0).getStatus().equalsIgnoreCase(FitHelper.SUCCESS)) {
-                                fitClass.setClassState(null);
-                                FitHelper.classifyClass(fitClass);
-                                FitHelper.tintClass(fitClass, holder.swBtnReserveClass);
-                                Toast.makeText(holder.itemView.getContext(), "Reserva cancelada.", Toast.LENGTH_LONG).show();
-                                // refresh reserved classes fragment
-                                if (this.reloadFragment != null) {
-                                    this.reloadFragment.refreshOtherClasses(holder.itemView.getContext());
-                                }
-                            } else {
-                                Toast.makeText(holder.itemView.getContext(), response.get(0).getStatus(), Toast.LENGTH_LONG).show();
-                            }
-
-                        }, err -> Toast.makeText(holder.itemView.getContext(), "Erro a cancelar reserva.", Toast.LENGTH_LONG).show()
-                );
-    }
-
-    @SuppressLint("CheckResult")
-    private void uncheckClass(final ClassViewHolder holder, FitClass fitClass) {
-        if (fitClass.getClassState() == ClassState.RESERVED) {
-            FitnessDataService service = RetrofitInstance.getRetrofitInstance().create(FitnessDataService.class);
-
-            Maybe.fromCallable(() -> fitClass.getAid())
-                    .switchIfEmpty(service.getReservedClasses(FitHelper.clientId)
-                            .flatMap(reservedClasses -> {
-                                for (FitClass f : reservedClasses) {
-                                    if (f.equals(fitClass)) {
-                                        return Maybe.just(f.getId());
-                                    }
-                                }
-                                return Maybe.error(InvalidParameterException::new);
-                            }))
-                    .flatMap(service::unbookClass)
-                    .subscribeOn(Schedulers.io())
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(response -> {
-                                if (response.get(0).getStatus().equalsIgnoreCase(FitHelper.SUCCESS)) {
-                                    fitClass.setClassState(null);
-                                    FitHelper.classifyClass(fitClass);
-                                    FitHelper.tintClass(fitClass, holder.swBtnReserveClass);
-                                    Toast.makeText(holder.itemView.getContext(), R.string.book_cancelled, Toast.LENGTH_LONG).show();
-                                    // refresh reserved classes fragment
-                                    if (this.reloadFragment != null) {
-                                        this.reloadFragment.refreshOtherClasses(holder.itemView.getContext());
-                                    }
-                                } else {
-                                    Toast.makeText(holder.itemView.getContext(), response.get(0).getStatus(), Toast.LENGTH_LONG).show();
-                                }
-
-                            }, err -> Toast.makeText(holder.itemView.getContext(), R.string.error_cancelling_reserve, Toast.LENGTH_LONG).show()
-                    );
-
-        } else if (fitClass.getClassState() == ClassState.SCHEDULE) {
-            // remove schedule (alarm manager)
-            AlarmManager manager = (AlarmManager) holder.itemView.getContext().getSystemService(Context.ALARM_SERVICE);
-            PendingIntent pendingIntent = PendingIntent.getBroadcast(holder.itemView.getContext(), Integer.parseInt(fitClass.getId()),
-                    new Intent(holder.itemView.getContext(), SchedulerReceiver.class), 0);
-            if (manager != null) {
-                manager.cancel(pendingIntent);
+            // refresh reserved classes fragment
+            if (this.reloadFragment != null) {
+                this.reloadFragment.refreshOtherClasses(holder.itemView.getContext());
             }
-            // remove from storage
-            StorageHelper.removeScheduleClass(holder.itemView.getContext(), fitClass.getId());
-            fitClass.setClassState(null);
-            try {
-                FitHelper.classifyClass(fitClass);
-            } catch (ParseException e) {
-                Toast.makeText(holder.itemView.getContext(), "Erro: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+//        }
+        }
+
+
+        @SuppressLint("CheckResult")
+        private void uncheckClass ( final ClassViewHolder holder, FitClass fitClass){
+            if (fitClass.getClassState() == ClassState.RESERVED) {
+                FitnessDataService service = RetrofitInstance.getRetrofitInstance().create(FitnessDataService.class);
+
+                Maybe.fromCallable(() -> fitClass.getAid())
+                        .switchIfEmpty(service.getReservedClasses(FitHelper.clientId)
+                                .flatMap(reservedClasses -> {
+                                    for (FitClass f : reservedClasses) {
+                                        if (f.equals(fitClass)) {
+                                            return Maybe.just(f.getId());
+                                        }
+                                    }
+                                    return Maybe.error(InvalidParameterException::new);
+                                }))
+                        .flatMap(service::unbookClass)
+                        .subscribeOn(Schedulers.io())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(response -> {
+                                    if (response.get(0).getStatus().equalsIgnoreCase(FitHelper.SUCCESS)) {
+                                        fitClass.setClassState(null);
+                                        FitHelper.classifyClass(fitClass);
+                                        FitHelper.tintClass(fitClass, holder.swBtnReserveClass);
+                                        Toast.makeText(holder.itemView.getContext(), R.string.book_cancelled, Toast.LENGTH_LONG).show();
+                                        // refresh reserved classes fragment
+                                        if (this.reloadFragment != null) {
+                                            this.reloadFragment.refreshOtherClasses(holder.itemView.getContext());
+                                        }
+                                    } else {
+                                        Toast.makeText(holder.itemView.getContext(), response.get(0).getStatus(), Toast.LENGTH_LONG).show();
+                                    }
+
+                                }, err -> Toast.makeText(holder.itemView.getContext(), R.string.error_cancelling_reserve, Toast.LENGTH_LONG).show()
+                        );
+
+            } else if (fitClass.getClassState() == ClassState.SCHEDULE) {
+                // remove schedule (alarm manager)
+                AlarmManager manager = (AlarmManager) holder.itemView.getContext().getSystemService(Context.ALARM_SERVICE);
+                PendingIntent pendingIntent = PendingIntent.getBroadcast(holder.itemView.getContext(), Integer.parseInt(fitClass.getId()),
+                        new Intent(holder.itemView.getContext(), SchedulerReceiver.class), 0);
+                if (manager != null) {
+                    manager.cancel(pendingIntent);
+                }
+                // remove from storage
+                StorageHelper.removeScheduleClass(holder.itemView.getContext(), fitClass.getId());
+                fitClass.setClassState(null);
+                try {
+                    FitHelper.classifyClass(fitClass);
+                } catch (ParseException e) {
+                    Toast.makeText(holder.itemView.getContext(), "Erro: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                }
+                FitHelper.tintClass(fitClass, holder.swBtnReserveClass);
+                Toast.makeText(holder.itemView.getContext(), "Agendamento cancelado.", Toast.LENGTH_SHORT).show();
             }
-            FitHelper.tintClass(fitClass, holder.swBtnReserveClass);
-            Toast.makeText(holder.itemView.getContext(), "Agendamento cancelado.", Toast.LENGTH_SHORT).show();
+        }
+
+
+        @Override
+        public int getItemCount () {
+            return classesList.size();
+        }
+
+        public void refresh () {
+            notifyDataSetChanged();
+        }
+
+        public void setReloadFragment (UpdateClassesInterface reloadFragment){
+            this.reloadFragment = reloadFragment;
+        }
+
+        /**
+         *
+         */
+        class ClassViewHolder extends RecyclerView.ViewHolder {
+
+            TextView txtSchedule, txtClassName, txtLocalName, txtDuration;
+            Switch swBtnReserveClass;
+
+            private ClassViewHolder(View itemView) {
+                super(itemView);
+                txtSchedule = itemView.findViewById(R.id.txt_schedule);
+                txtClassName = itemView.findViewById(R.id.txt_class_name);
+                txtLocalName = itemView.findViewById(R.id.txt_local_name);
+                txtDuration = itemView.findViewById(R.id.txt_duration);
+                swBtnReserveClass = itemView.findViewById(R.id.sw_btn_reserve_class);
+            }
         }
     }
-
-
-    @Override
-    public int getItemCount() {
-        return classesList.size();
-    }
-
-    public void refresh() {
-        notifyDataSetChanged();
-    }
-
-    public void setReloadFragment(UpdateClassesInterface reloadFragment) {
-        this.reloadFragment = reloadFragment;
-    }
-
-    /**
-     *
-     */
-    class ClassViewHolder extends RecyclerView.ViewHolder {
-
-        TextView txtSchedule, txtClassName, txtLocalName, txtDuration;
-        Switch swBtnReserveClass;
-
-        private ClassViewHolder(View itemView) {
-            super(itemView);
-            txtSchedule = itemView.findViewById(R.id.txt_schedule);
-            txtClassName = itemView.findViewById(R.id.txt_class_name);
-            txtLocalName = itemView.findViewById(R.id.txt_local_name);
-            txtDuration = itemView.findViewById(R.id.txt_duration);
-            swBtnReserveClass = itemView.findViewById(R.id.sw_btn_reserve_class);
-        }
-    }
-}
