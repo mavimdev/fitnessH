@@ -166,8 +166,7 @@ public class ClassAdapter extends RecyclerView.Adapter<ClassAdapter.ClassViewHol
     private void uncheckClass(final ClassViewHolder holder, FitClass fitClass) {
         if (fitClass.getClassState() == ClassState.RESERVED) {
             FitnessDataService service = RetrofitInstance.getRetrofitInstance().create(FitnessDataService.class);
-
-            Maybe.fromCallable(() -> fitClass.getAid())
+            Maybe.fromCallable(fitClass::getAid)
                     .switchIfEmpty(service.getReservedClasses(FitHelper.clientId)
                             .flatMap(reservedClasses -> {
                                 for (FitClass f : reservedClasses) {
@@ -186,7 +185,7 @@ public class ClassAdapter extends RecyclerView.Adapter<ClassAdapter.ClassViewHol
                                     FitHelper.classifyClass(fitClass);
                                     FitHelper.tintClass(fitClass, holder.swBtnReserveClass);
                                     Toast.makeText(holder.itemView.getContext(), R.string.book_cancelled, Toast.LENGTH_LONG).show();
-                                    // refresh reserved classes fragment
+                                    // refresh other classes fragments
                                     if (this.reloadFragment != null) {
                                         this.reloadFragment.refreshOtherClasses(holder.itemView.getContext());
                                     }

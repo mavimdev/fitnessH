@@ -22,6 +22,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
@@ -30,15 +31,15 @@ import java.util.concurrent.ThreadLocalRandom;
 
 public class FitHelper {
     // shared preferences
-    public static final String SP_FAVORITE_CLUB_ID = "SP_FAVORITE_CLUB_ID";
-    public static final String SP_CLIENT_ID = "SP_CLIENT_ID";
-    public static final String SP_PACK_FITNESS_HUT = "SP_PACK_FITNESS_HUT";
-    public static final String SP_FAVORITE_CLUB_TITLE = "SP_FAVORITE_CLUB_TITLE";
+    private static final String SP_FAVORITE_CLUB_ID = "SP_FAVORITE_CLUB_ID";
+    private static final String SP_CLIENT_ID = "SP_CLIENT_ID";
+    private static final String SP_PACK_FITNESS_HUT = "SP_PACK_FITNESS_HUT";
+    private static final String SP_FAVORITE_CLUB_TITLE = "SP_FAVORITE_CLUB_TITLE";
     // user details
     public static String fitnessHutClubId;
     public static String fitnessHutClubTitle;
     public static String fitnessFavoriteClubId;
-    public static String fitnessFavoriteClubTitle;
+    private static String fitnessFavoriteClubTitle;
     public static String packFitnessHut;
     public static String clientId;
     // constants
@@ -66,14 +67,9 @@ public class FitHelper {
         Calendar classDate = Calendar.getInstance();
 
         SimpleDateFormat dateFormat;
-
-        if (ClassState.RESERVED.equals(fit.getClassState()) && fit.getMdata() != null) {
-            dateFormat = new SimpleDateFormat("d MMM|H:mm");
-            classDate.setTime(dateFormat.parse(fit.getMdata().concat("|").concat(fit.getMhorario())));
-        } else {
-            dateFormat = new SimpleDateFormat("yyyy-MM-dd|H:mm");
-            classDate.setTime(dateFormat.parse(fit.getDate().concat("|").concat(fit.getHorario())));
-        }
+        dateFormat = new SimpleDateFormat("yyyy-MM-dd|H:mm", Locale.getDefault());
+        classDate.setTime(dateFormat.parse((fit.getDate() != null ? fit.getDate() : fit.getRdata()) .concat("|")
+                .concat(fit.getHorario() != null ? fit.getHorario() : fit.getMhorario())));
 
         Calendar afterReservationHours = Calendar.getInstance();
         afterReservationHours.add(Calendar.HOUR_OF_DAY, HOURS_BEFORE_RESERVATION);
@@ -82,9 +78,9 @@ public class FitHelper {
             if (now.after(classDate)) {
                 fit.setClassState(ClassState.EXPIRED);
             } else if (classDate.get(Calendar.DAY_OF_MONTH) == now.get(Calendar.DAY_OF_MONTH)) {
-                if (fit.getVagas() > 0) {
+                if (fit.getVagas() != null && fit.getVagas() > 0) {
                     fit.setClassState(ClassState.AVAILABLE);
-                } else if (classDate.before(afterReservationHours)) {
+                } else if (fit.getVagas() != null && classDate.before(afterReservationHours)) {
                     fit.setClassState(ClassState.SOLD_OUT);
                 } else {
                     fit.setClassState(ClassState.UNAVAILABLE);
@@ -220,7 +216,7 @@ public class FitHelper {
 
     public static Calendar getClassDate(FitClass fitClass) throws ParseException {
         Calendar classDate = Calendar.getInstance();
-        classDate.setTime(new SimpleDateFormat("yyyy-MM-dd|H:mm")
+        classDate.setTime(new SimpleDateFormat("yyyy-MM-dd|H:mm", Locale.getDefault())
                 .parse(fitClass.getDate().concat("|").concat(fitClass.getHorario())));
         return classDate;
     }
