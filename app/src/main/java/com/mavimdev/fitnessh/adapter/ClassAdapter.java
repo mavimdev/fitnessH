@@ -62,10 +62,29 @@ public class ClassAdapter extends RecyclerView.Adapter<ClassAdapter.ClassViewHol
     public void onBindViewHolder(final ClassViewHolder holder, final int position) {
         FitClass fclass = classesList.get(position);
         holder.txtSchedule.setText(fclass.getHorario() != null ?
-                fclass.getHorario() : fclass.getMdata() + " - " + fclass.getMhorario());
+                fclass.getHorario() : fclass.getMhorario());
         holder.txtClassName.setText(fclass.getAulan());
         holder.txtLocalName.setText(fclass.getLocaln());
-        holder.txtDuration.setText(fclass.getDuracao());
+        holder.txtDuration.setText((fclass.getDuracao() != null ? fclass.getDuracao() : fclass.getMduracao()).concat(" min"));
+
+        if (fclass.getProfn() == null) {
+            holder.txtProfessor.setVisibility(View.GONE);
+        } else {
+            holder.txtProfessor.setText(fclass.getProfn());
+        }
+
+        if (fclass.getMdata() == null) {
+            holder.txtDate.setVisibility(View.GONE);
+        } else {
+            holder.txtDate.setText(fclass.getMdata());
+        }
+
+        if (fclass.getTitle() == null) {
+            holder.txtClubTitle.setVisibility(View.GONE);
+        } else {
+            holder.txtClubTitle.setText(fclass.getTitle());
+        }
+
         try {
             FitHelper.classifyClass(fclass);
         } catch (ParseException e) {
@@ -114,7 +133,7 @@ public class ClassAdapter extends RecyclerView.Adapter<ClassAdapter.ClassViewHol
 
         } else if (fitClass.getClassState() == ClassState.SOLD_OUT) {
             // keep trying until availability ?
-            Toast.makeText(holder.itemView.getContext(), "Opção de aguardar vaga ainda não disponível.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(holder.itemView.getContext(), R.string.waiting_place_not_available, Toast.LENGTH_LONG).show();
             FitHelper.tintClass(fitClass, holder.swBtnReserveClass);
 
         } else if (fitClass.getClassState() == ClassState.UNAVAILABLE) {
@@ -137,7 +156,7 @@ public class ClassAdapter extends RecyclerView.Adapter<ClassAdapter.ClassViewHol
             fitClass.setTitle(FitHelper.fitnessHutClubTitle);
             boolean classSaved = StorageHelper.addScheduleClass(holder.itemView.getContext(), fitClass);
             if (!classSaved) {
-                Toast.makeText(holder.itemView.getContext(), "Erro a agendar a aula.", Toast.LENGTH_SHORT).show();
+                Toast.makeText(holder.itemView.getContext(), R.string.class_scheduled_error, Toast.LENGTH_SHORT).show();
                 return;
             }
 
@@ -151,6 +170,7 @@ public class ClassAdapter extends RecyclerView.Adapter<ClassAdapter.ClassViewHol
                     // Wakes up the device in Idle Mode
                     manager.setExact(AlarmManager.RTC_WAKEUP, classEnrollmentDate.getTimeInMillis(), pendingIntent);
                 }
+                Toast.makeText(holder.itemView.getContext(), R.string.class_scheduled_success, Toast.LENGTH_SHORT).show();
             }
 
             fitClass.setClassState(ClassState.SCHEDULE);
@@ -237,7 +257,8 @@ public class ClassAdapter extends RecyclerView.Adapter<ClassAdapter.ClassViewHol
      */
     class ClassViewHolder extends RecyclerView.ViewHolder {
 
-        TextView txtSchedule, txtClassName, txtLocalName, txtDuration;
+        TextView txtSchedule, txtClassName, txtLocalName, txtDuration, txtProfessor,
+        txtClubTitle, txtDate;
         Switch swBtnReserveClass;
 
         private ClassViewHolder(View itemView) {
@@ -247,6 +268,9 @@ public class ClassAdapter extends RecyclerView.Adapter<ClassAdapter.ClassViewHol
             txtLocalName = itemView.findViewById(R.id.txt_local_name);
             txtDuration = itemView.findViewById(R.id.txt_duration);
             swBtnReserveClass = itemView.findViewById(R.id.sw_btn_reserve_class);
+            txtProfessor = itemView.findViewById(R.id.txt_professor);
+            txtClubTitle = itemView.findViewById(R.id.txt_club);
+            txtDate = itemView.findViewById(R.id.txt_date);
         }
     }
 }

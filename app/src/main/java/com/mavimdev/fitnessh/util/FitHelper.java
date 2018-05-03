@@ -7,6 +7,7 @@ import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
+import android.util.AndroidException;
 import android.util.Log;
 import android.widget.CompoundButton;
 
@@ -102,7 +103,7 @@ public class FitHelper {
             swBtnReserveClass.setText(R.string.class_status_reserved);
             swBtnReserveClass.setChecked(true);
         } else if (fclass.getClassState() == ClassState.SCHEDULE) {
-            swBtnReserveClass.setTextColor(Color.YELLOW);
+            swBtnReserveClass.setTextColor(Color.rgb(255, 164,65));
             swBtnReserveClass.setText(R.string.class_status_schedule);
             swBtnReserveClass.setChecked(true);
         } else if (fclass.getClassState() == ClassState.EXPIRED) {
@@ -115,7 +116,7 @@ public class FitHelper {
             swBtnReserveClass.setText(R.string.class_status_soldout);
             swBtnReserveClass.setChecked(false);
         } else if (fclass.getClassState() == ClassState.UNAVAILABLE) {
-            swBtnReserveClass.setTextColor(Color.GRAY);
+            swBtnReserveClass.setTextColor(Color.rgb(94, 111, 199));
             swBtnReserveClass.setText(R.string.class_status_unavailable);
             swBtnReserveClass.setChecked(false);
         }

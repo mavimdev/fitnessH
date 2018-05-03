@@ -10,12 +10,12 @@
     <string name="error_invalid_input_data">Os dados introduzidos são inválidos</string>
     <string name="error_blank_password">A password não pode ficar em branco</string>
     <string name="error_blank_email">O email não pode ficar em branco</string>
-    <string name="class_status_available">DISPONIVEL</string>
+    <string name="class_status_available">RESERVAR</string>
     <string name="class_status_reserved">RESERVADA</string>
     <string name="class_status_schedule">AGENDADA</string>
     <string name="class_status_expired">EXPIRADA</string>
     <string name="class_status_soldout">ESGOTADA</string>
-    <string name="class_status_unavailable">INDISPONIVEL</string>
+    <string name="class_status_unavailable">AGENDAR</string>
     <string name="nav_header_subtitle">mavimdev@gmail.com</string>
     <string name="choose_fav_club">Escolher clube favorito</string>
     <string name="navigation_drawer_open">Open navigation drawer</string>
@@ -27,4 +27,7 @@
     <string name="class_reserved">Aula reservada com sucesso</string>
     <string name="book_cancelled">Reserva cancelada.</string>
     <string name="error_cancelling_reserve">Erro a cancelar reserva.</string>
+    <string name="waiting_place_not_available">Opção de Aguardar Vaga não disponível.</string>
+    <string name="class_scheduled_success">Aula agendada para marcação.</string>
+    <string name="class_scheduled_error">Erro a agendar a aula.</string>
 </resources>
