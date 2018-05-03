@@ -84,13 +84,14 @@ public class FitClass {
         this.moveweek = moveweek;
     }
 
-    public FitClass(String id, String date, String horario, String duracao, String aulan, String localn) {
+    public FitClass(String id, String date, String horario, String duracao, String aulan, String localn, String title) {
         this.id = id;
         this.date = date;
         this.horario = horario;
         this.duracao = duracao;
         this.localn = localn;
         this.aulan = aulan;
+        this.title = title;
     }
 
     public String getId() {

@@ -31,13 +31,15 @@ public class SchedulerReceiver extends BroadcastReceiver {
     @SuppressLint("CheckResult")
     @Override
     public void onReceive(Context context, Intent intent) {
+        FitHelper.notifyUser(context, "SchedulerReceived", "");
+        Log.i("SchedulerReceiver", "Schedule received");
+
         PowerManager pm = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
         PowerManager.WakeLock wakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "com.fitnessh");
         if (!wakeLock.isHeld()) {
             wakeLock.acquire(15000);
         }
 
-        Log.i("SchedulerReceiver", "Schedule received");
 
         AtomicInteger attemptsCount = new AtomicInteger();
         if (!FitHelper.SCHEDULE_INTENT_ACTION.equals(intent.getAction())) {
@@ -47,7 +49,7 @@ public class SchedulerReceiver extends BroadcastReceiver {
         if (fitClassId == null) {
             throw new InvalidParameterException();
         }
-
+        Log.i("Booking ScheduleClass", "start booking");
         // reserve the class
         RetrofitInstance.getRetrofitInstance().create(FitnessDataService.class)
                 .bookClass(FitHelper.clientId, fitClassId, FitHelper.RESERVATION_PASSWORD)
@@ -58,7 +60,7 @@ public class SchedulerReceiver extends BroadcastReceiver {
                 .takeUntil(observable -> attemptsCount.get() >= FitHelper.MAX_ATTEMPTS)
                 .subscribe(response -> {
                             attemptsCount.getAndIncrement();
-                            Log.i("Booking ScheduleClass", "Trying to reserv class - attempt: " + attemptsCount.get());
+                            Log.i("Booking ScheduleClass", "Trying to book class - attempt: " + attemptsCount.get());
                             if (!response.get(0).getStatus().equals(FitHelper.CLASS_NOT_AVAILABLE)) {
                                 Log.i("Booking ScheduleClass", response.get(0).getStatus());
                             }

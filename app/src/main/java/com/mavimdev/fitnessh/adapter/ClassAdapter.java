@@ -134,6 +134,7 @@ public class ClassAdapter extends RecyclerView.Adapter<ClassAdapter.ClassViewHol
             AlarmManager manager = (AlarmManager) holder.itemView.getContext().getSystemService(Context.ALARM_SERVICE);
 
             // saves schedule class to the internal storage
+            fitClass.setTitle(FitHelper.fitnessHutClubTitle);
             boolean classSaved = StorageHelper.addScheduleClass(holder.itemView.getContext(), fitClass);
             if (!classSaved) {
                 Toast.makeText(holder.itemView.getContext(), "Erro a agendar a aula.", Toast.LENGTH_SHORT).show();

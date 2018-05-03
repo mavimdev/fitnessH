@@ -24,10 +24,11 @@
         </receiver>
         <receiver
             android:name=".service.SchedulerReceiver"
-            android:enabled="true">
-            <!--<intent-filter>-->
-                <!--<action android:name="com.mavim.ACTION_SCHEDULE" />-->
-            <!--</intent-filter>-->
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.mavim.ACTION_SCHEDULE" />
+            </intent-filter>
             <intent-filter>
                 <action android:name="com.mavimdev.fitnessh.adapter.ClassAdapter" />
             </intent-filter>

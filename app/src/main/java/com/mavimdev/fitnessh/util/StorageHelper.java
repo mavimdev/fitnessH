@@ -37,7 +37,7 @@ public class StorageHelper {
         }
         // adds the new schedule class
         FitClass fClass = new FitClass(fitClass.getId(), fitClass.getDate(), fitClass.getHorario(),
-                fitClass.getDuracao(), fitClass.getAulan(), fitClass.getLocaln());
+                fitClass.getDuracao(), fitClass.getAulan(), fitClass.getLocaln(), fitClass.getTitle());
         scheduleClasses.add(fClass);
         // saves schedule classes
         try {
