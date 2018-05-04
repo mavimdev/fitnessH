@@ -66,10 +66,8 @@ public class TodayClassesFragment extends Fragment implements UpdateClassesInter
 
         /*Create handle for the RetrofitInstance interface*/
         FitnessDataService service = RetrofitInstance.getRetrofitInstance().create(FitnessDataService.class);
-
-        /*Call the method to get the classes data*/
-
         progressBar.setVisibility(View.VISIBLE);
+
         Maybe<ArrayList<FitClass>> call = service.getReservedClasses(FitHelper.clientId);
         disposable = call.subscribeOn(Schedulers.io())
                 .flatMap(reservedClasses -> {
@@ -95,7 +93,9 @@ public class TodayClassesFragment extends Fragment implements UpdateClassesInter
                         },
                         err -> {
                             progressBar.setVisibility(View.GONE);
-                            Toast.makeText(context, "Ocorreu um erro.. tente mais tarde!", Toast.LENGTH_SHORT).show();
+                            if (this.isVisible()) {
+                                Toast.makeText(context, "Ocorreu um erro.. tente mais tarde!", Toast.LENGTH_SHORT).show();
+                            }
                         }
 
                 );

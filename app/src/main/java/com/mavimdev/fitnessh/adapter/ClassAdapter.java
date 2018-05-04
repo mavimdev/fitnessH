@@ -108,33 +108,72 @@ public class ClassAdapter extends RecyclerView.Adapter<ClassAdapter.ClassViewHol
         AtomicInteger attemptsCount = new AtomicInteger();
         if (fitClass.getClassState() == ClassState.AVAILABLE) {
             // reserve the class
+            fitClass.setClassState(ClassState.BOOKING);
+            FitHelper.tintClass(fitClass, holder.swBtnReserveClass);
             RetrofitInstance.getRetrofitInstance().create(FitnessDataService.class)
                     .bookClass(FitHelper.clientId, fitClass.getId(), FitHelper.RESERVATION_PASSWORD)
                     .subscribeOn(Schedulers.io())
                     .observeOn(AndroidSchedulers.mainThread())
                     .repeatWhen(observable -> observable.delay(FitHelper.ATTEMPTS_SECONDS_REPEAT, TimeUnit.SECONDS))
                     .takeUntil((Predicate<? super ArrayList<FitStatus>>) response -> !response.get(0).getStatus().equalsIgnoreCase(FitHelper.CLASS_NOT_AVAILABLE))
-                    .takeUntil(observable -> attemptsCount.get() >= FitHelper.MAX_ATTEMPTS)
+                    .takeUntil(observable -> attemptsCount.get() >= FitHelper.MAX_ATTEMPTS_SOLD_OUT)
                     .subscribe(response -> {
+                                Log.i("FitnessH", "Available: Trying to book class - attempt: " + attemptsCount.get());
                                 attemptsCount.getAndIncrement();
                                 if (response.get(0).getStatus().equalsIgnoreCase(FitHelper.CLASS_RESERVED)) {
                                     fitClass.setClassState(ClassState.RESERVED);
-                                    FitHelper.tintClass(fitClass, holder.swBtnReserveClass);
                                     // refresh reserved classes fragment
                                     if (this.reloadFragment != null) {
                                         this.reloadFragment.refreshOtherClasses(holder.itemView.getContext());
                                     }
                                 }
-                                if (!response.get(0).getStatus().equals(FitHelper.CLASS_NOT_AVAILABLE)) {
+                                if (!response.get(0).getStatus().equals(FitHelper.CLASS_NOT_AVAILABLE) || attemptsCount.get() >= FitHelper.MAX_ATTEMPTS) {
+                                    FitHelper.classifyClass(fitClass);
+                                    FitHelper.tintClass(fitClass, holder.swBtnReserveClass);
                                     Toast.makeText(holder.itemView.getContext(), response.get(0).getStatus(), Toast.LENGTH_LONG).show();
                                 }
-                            }, err -> Toast.makeText(holder.itemView.getContext(), "Erro a reservar a aula.", Toast.LENGTH_LONG).show()
+                            }, err -> {
+                                FitHelper.classifyClass(fitClass);
+                                FitHelper.tintClass(fitClass, holder.swBtnReserveClass);
+                                Toast.makeText(holder.itemView.getContext(), "Erro a reservar a aula.", Toast.LENGTH_LONG).show();
+                            }
                     );
 
         } else if (fitClass.getClassState() == ClassState.SOLD_OUT) {
-            // keep trying until availability ?
-            Toast.makeText(holder.itemView.getContext(), R.string.waiting_place_not_available, Toast.LENGTH_LONG).show();
+            // try to reserve the class
+            fitClass.setClassState(ClassState.BOOKING);
             FitHelper.tintClass(fitClass, holder.swBtnReserveClass);
+//            Toast.makeText(holder.itemView.getContext(), "A tentar reservar durante 1 min...", Toast.LENGTH_LONG).show();
+
+            RetrofitInstance.getRetrofitInstance().create(FitnessDataService.class)
+                    .bookClass(FitHelper.clientId, fitClass.getId(), FitHelper.RESERVATION_PASSWORD)
+                    .subscribeOn(Schedulers.io())
+                    .observeOn(AndroidSchedulers.mainThread())
+//                    .repeatWhen(observable -> observable.delay(FitHelper.ATTEMPTS_SECONDS_REPEAT_SOLD_OUT, TimeUnit.SECONDS))
+//                    .takeUntil((Predicate<? super ArrayList<FitStatus>>) response -> !response.get(0).getStatus().equalsIgnoreCase(FitHelper.CLASS_SOLD_OUT))
+//                    .takeUntil(observable -> attemptsCount.get() >= FitHelper.MAX_ATTEMPTS_SOLD_OUT)
+                    .subscribe(response -> {
+                                Log.i("FitnessH", "Sold Out: Trying to book class - attempt: " + attemptsCount.get());
+                                attemptsCount.getAndIncrement();
+                                if (response.get(0).getStatus().equalsIgnoreCase(FitHelper.CLASS_RESERVED)) {
+                                    fitClass.setClassState(ClassState.RESERVED);
+                                    // refresh reserved classes fragment
+                                    if (this.reloadFragment != null) {
+                                        this.reloadFragment.refreshOtherClasses(holder.itemView.getContext());
+                                    }
+                                }
+//                                if (!response.get(0).getStatus().equals(FitHelper.CLASS_SOLD_OUT) || attemptsCount.get() >= FitHelper.MAX_ATTEMPTS_SOLD_OUT) {
+                                    FitHelper.classifyClass(fitClass);
+                                    FitHelper.tintClass(fitClass, holder.swBtnReserveClass);
+                                    Toast.makeText(holder.itemView.getContext(), response.get(0).getStatus(), Toast.LENGTH_LONG).show();
+//                                }
+                            }, err -> {
+                                Log.e("FitnessH", "Check class - Sold out: " + err.getMessage());
+                                Toast.makeText(holder.itemView.getContext(), "Erro a reservar a aula.", Toast.LENGTH_LONG).show();
+                                FitHelper.classifyClass(fitClass);
+                                FitHelper.tintClass(fitClass, holder.swBtnReserveClass);
+                            }
+                    );
 
         } else if (fitClass.getClassState() == ClassState.UNAVAILABLE) {
             // schedule the enrollment
@@ -162,7 +201,7 @@ public class ClassAdapter extends RecyclerView.Adapter<ClassAdapter.ClassViewHol
 
             if (manager != null) {
                 // sets the schedule
-                Log.i("fitnessH", "class being schedule: fitclassId: " + fitClass.getId());
+                Log.i("fitnessH", "class " + fitClass.getAulan() + " (" + fitClass.getId() + ") being schedule on: " + classEnrollmentDate.getTime());
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                     // Wakes up the device in Doze Mode
                     manager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, classEnrollmentDate.getTimeInMillis(), pendingIntent);
@@ -203,8 +242,6 @@ public class ClassAdapter extends RecyclerView.Adapter<ClassAdapter.ClassViewHol
                     .subscribe(response -> {
                                 if (response.get(0).getStatus().equalsIgnoreCase(FitHelper.SUCCESS)) {
                                     fitClass.setClassState(null);
-                                    FitHelper.classifyClass(fitClass);
-                                    FitHelper.tintClass(fitClass, holder.swBtnReserveClass);
                                     Toast.makeText(holder.itemView.getContext(), R.string.book_cancelled, Toast.LENGTH_LONG).show();
                                     // refresh other classes fragments
                                     if (this.reloadFragment != null) {
@@ -213,8 +250,12 @@ public class ClassAdapter extends RecyclerView.Adapter<ClassAdapter.ClassViewHol
                                 } else {
                                     Toast.makeText(holder.itemView.getContext(), response.get(0).getStatus(), Toast.LENGTH_LONG).show();
                                 }
-
-                            }, err -> Toast.makeText(holder.itemView.getContext(), R.string.error_cancelling_reserve, Toast.LENGTH_LONG).show()
+                                FitHelper.classifyClass(fitClass);
+                                FitHelper.tintClass(fitClass, holder.swBtnReserveClass);
+                            }, err -> {
+                                Log.e("FitnessH", "unbook class: " + err.getMessage());
+                                Toast.makeText(holder.itemView.getContext(), R.string.error_cancelling_reserve, Toast.LENGTH_LONG).show();
+                            }
                     );
 
         } else if (fitClass.getClassState() == ClassState.SCHEDULE) {
@@ -258,7 +299,7 @@ public class ClassAdapter extends RecyclerView.Adapter<ClassAdapter.ClassViewHol
     class ClassViewHolder extends RecyclerView.ViewHolder {
 
         TextView txtSchedule, txtClassName, txtLocalName, txtDuration, txtProfessor,
-        txtClubTitle, txtDate;
+                txtClubTitle, txtDate;
         Switch swBtnReserveClass;
 
         private ClassViewHolder(View itemView) {

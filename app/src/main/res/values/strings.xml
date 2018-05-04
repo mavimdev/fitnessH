@@ -28,6 +28,9 @@
     <string name="book_cancelled">Reserva cancelada.</string>
     <string name="error_cancelling_reserve">Erro a cancelar reserva.</string>
     <string name="waiting_place_not_available">Opção de Aguardar Vaga não disponível.</string>
-    <string name="class_scheduled_success">Aula agendada para marcação.</string>
+    <string name="class_scheduled_success">Aula agendada para reservar.</string>
     <string name="class_scheduled_error">Erro a agendar a aula.</string>
+    <string name="class_status_unbooked">CANCELADA</string>
+    <string name="class_status_booking">A RESERVAR...</string>
+    <string name="no_classes_to_show">Não existem aulas para apresentar</string>
 </resources>

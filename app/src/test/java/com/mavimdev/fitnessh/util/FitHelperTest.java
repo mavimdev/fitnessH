@@ -1,5 +1,7 @@
 package com.mavimdev.fitnessh.util;
 
+import android.provider.CalendarContract;
+
 import com.mavimdev.fitnessh.model.FitClass;
 
 import org.junit.Test;
@@ -77,18 +79,33 @@ public class FitHelperTest {
         assertEquals(ClassState.UNAVAILABLE, unavailableClass.getClassState());
 
         // tomorrow on an hour before now
-        futureDate.add(Calendar.HOUR_OF_DAY, -2);
-        unavailableClass.setHorario(timeFormat.format(futureDate.getTime()));
+        Calendar futureDate2 = Calendar.getInstance();
+        futureDate2.add(Calendar.DAY_OF_MONTH, 1);
+        futureDate2.add(Calendar.HOUR_OF_DAY, -1);
+        unavailableClass.setHorario(timeFormat.format(futureDate2.getTime()));
         FitHelper.classifyClass(unavailableClass);
         assertEquals(ClassState.UNAVAILABLE, unavailableClass.getClassState());
 
-        // after 10 hours
+        // after 10 hours without free places
         Calendar futureToday = Calendar.getInstance();
         futureToday.add(Calendar.HOUR_OF_DAY, FitHelper.HOURS_BEFORE_RESERVATION + 1);
-        unavailableClass.setDate(dateFormat.format(new Date()));
+        unavailableClass.setDate(dateFormat.format(futureToday.getTime()));
         unavailableClass.setHorario(timeFormat.format(futureToday.getTime()));
         unavailableClass.setVagas(0);
         FitHelper.classifyClass(unavailableClass);
         assertEquals(ClassState.UNAVAILABLE, unavailableClass.getClassState());
+
+        // tomorrow less than 10 hours from "now"
+        Calendar today = Calendar.getInstance();
+        today.set(Calendar.HOUR_OF_DAY, 21);
+        FitClass tomorrowClass = new FitClass();
+        Calendar tomorrowDate = Calendar.getInstance();
+        tomorrowDate.add(Calendar.DAY_OF_MONTH, 1);
+        tomorrowDate.set(Calendar.HOUR_OF_DAY, 6);
+        tomorrowClass.setDate(dateFormat.format(tomorrowDate.getTime()));
+        tomorrowClass.setHorario(timeFormat.format(tomorrowDate.getTime()));
+        tomorrowClass.setVagas(1);
+        FitHelper.classifyClass(tomorrowClass);
+        assertEquals(ClassState.AVAILABLE, tomorrowClass.getClassState());
     }
 }

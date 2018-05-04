@@ -10,11 +10,11 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.mavimdev.fitnessh.R;
 import com.mavimdev.fitnessh.adapter.ClassAdapter;
+import com.mavimdev.fitnessh.adapter.ClassEmptyAdapter;
 import com.mavimdev.fitnessh.model.FitClass;
 import com.mavimdev.fitnessh.network.FitnessDataService;
 import com.mavimdev.fitnessh.network.RetrofitInstance;
@@ -80,14 +80,23 @@ public class ReservedClassesFragment extends Fragment implements UpdateClassesIn
                             // merge the schedule classes to the reserved classes
                             reservedClasses.addAll(scheduleClasses);
 
-                            ClassAdapter adapter = new ClassAdapter(reservedClasses);
-                            adapter.setReloadFragment(this);
-                            adapter.refresh();
+                            RecyclerView.Adapter adapter = null;
+                            // if has data
+                            if (reservedClasses.size() > 0) {
+                                adapter = new ClassAdapter(reservedClasses);
+                                ((ClassAdapter) adapter).setReloadFragment(this);
+                                ((ClassAdapter) adapter).refresh();
+                            } else {
+                                adapter = new ClassEmptyAdapter();
+                            }
+
                             if (recyclerView != null) {
                                 recyclerView.setAdapter(adapter);
                             }
                         }, err -> {
-                            Toast.makeText(context, "Ocorreu um erro.. por favor tente novamente!", Toast.LENGTH_SHORT).show();
+                            if (this.isVisible()) {
+                                Toast.makeText(context, "Ocorreu um erro.. por favor tente novamente!", Toast.LENGTH_SHORT).show();
+                            }
                         }
                 );
     }

@@ -8,10 +8,10 @@
         android:id="@+id/labelSpinner"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginLeft="15dp"
         android:layout_marginRight="5dp"
-        android:layout_marginLeft="5dp"
-        android:textColor="@android:color/white"
-        android:text="@string/club" />
+        android:text="@string/club"
+        android:textColor="@android:color/white" />
 
     <Spinner
         android:id="@+id/spinner_clubs"

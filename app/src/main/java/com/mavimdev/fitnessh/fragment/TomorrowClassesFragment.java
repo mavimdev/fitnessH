@@ -74,7 +74,9 @@ public class TomorrowClassesFragment extends Fragment implements UpdateClassesIn
                             adapter.refresh();
                             recyclerView.setAdapter(adapter);
                         }, err -> {
-                            Toast.makeText(context, "Something went wrong...Please try later!", Toast.LENGTH_SHORT).show();
+                            if (this.isVisible()) {
+                                Toast.makeText(context, "Ocorreu um erro.. tente mais tarde!", Toast.LENGTH_SHORT).show();
+                            }
                         }
                 );
     }

@@ -7,7 +7,6 @@ import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
-import android.util.AndroidException;
 import android.util.Log;
 import android.widget.CompoundButton;
 
@@ -49,46 +48,54 @@ public class FitHelper {
     public static final int RESERVED_CLASSES_TAB = 2;
     public static final int HOURS_BEFORE_RESERVATION = 10;
     public static final int MAX_ATTEMPTS = 15;
+    public static final int MAX_ATTEMPTS_SOLD_OUT = 6;
     public static final int ATTEMPTS_SECONDS_REPEAT = 7;
+    public static final long ATTEMPTS_SECONDS_REPEAT_SOLD_OUT = 10;
     public final static String RESERVATION_PASSWORD = "e94b10f0da8d42095ca5c20927416de5";
     // config
     public static final String SCHEDULE_INTENT_ACTION = "com.mavim.ACTION_SCHEDULE";
     public static final String COM_MAVIM_FITNESS_FIT_CLASS_ID = "com.mavim.fitnessH.fitClassId";
     public static final String SCHEDULE_INFO_FILE = "scheduleclasses.fit";
-    public static final String CLASS_NOT_AVAILABLE = "NÃO PODE RESERVAR A AULA! AULA INDISPONÍVEL.";
-    public static final String CLASS_RESERVED = "AULA RESERVADA";
     public static final String SUCCESS = "success";
     public static final int REQUEST_FAVORITE_CODE = 1;
     public static final String REFRESH_CLASSES = "fit_refresh_classes";
-
+    // result messages
+    public static final String CLASS_NOT_AVAILABLE = "NÃO PODE RESERVAR A AULA! AULA INDISPONÍVEL.";
+    // public static final String CLASS_SOLD_OUT = "NÃO PODE RESERVAR A AULA! AULA ESGOTADA.";
+    public static final String CLASS_RESERVED = "AULA RESERVADA";
 
     public static void classifyClass(FitClass fit) throws ParseException {
+        // already classified, do nothing
+        if (fit.getClassState() == ClassState.RESERVED || fit.getClassState() == ClassState.SCHEDULE) {
+            return;
+        }
         // check state of class
         Calendar now = Calendar.getInstance();
         Calendar classDate = Calendar.getInstance();
 
         SimpleDateFormat dateFormat;
         dateFormat = new SimpleDateFormat("yyyy-MM-dd|H:mm", Locale.getDefault());
-        classDate.setTime(dateFormat.parse((fit.getDate() != null ? fit.getDate() : fit.getRdata()) .concat("|")
+        classDate.setTime(dateFormat.parse((fit.getDate() != null ? fit.getDate() : fit.getRdata()).concat("|")
                 .concat(fit.getHorario() != null ? fit.getHorario() : fit.getMhorario())));
 
+        // time before class that is possible to book (default 10 hours)
         Calendar afterReservationHours = Calendar.getInstance();
         afterReservationHours.add(Calendar.HOUR_OF_DAY, HOURS_BEFORE_RESERVATION);
 
-        if (fit.getClassState() != ClassState.RESERVED && fit.getClassState() != ClassState.SCHEDULE) {
-            if (now.after(classDate)) {
-                fit.setClassState(ClassState.EXPIRED);
-            } else if (classDate.get(Calendar.DAY_OF_MONTH) == now.get(Calendar.DAY_OF_MONTH)) {
-                if (fit.getVagas() != null && fit.getVagas() > 0) {
-                    fit.setClassState(ClassState.AVAILABLE);
-                } else if (fit.getVagas() != null && classDate.before(afterReservationHours)) {
-                    fit.setClassState(ClassState.SOLD_OUT);
-                } else {
-                    fit.setClassState(ClassState.UNAVAILABLE);
-                }
-            } else if (classDate.after(now) && classDate.get(Calendar.DAY_OF_MONTH) != now.get(Calendar.DAY_OF_MONTH)) {
-                fit.setClassState(ClassState.UNAVAILABLE);
-            }
+        // in the past
+        if (now.after(classDate)) {
+            fit.setClassState(ClassState.EXPIRED);
+            // with free places
+        } else if (fit.getVagas() != null && fit.getVagas() > 0) {
+            fit.setClassState(ClassState.AVAILABLE);
+            // zero places and in date
+        } else if (new Integer(0).equals(fit.getVagas()) && classDate.before(afterReservationHours)) {
+            fit.setClassState(ClassState.SOLD_OUT);
+            // places null and in date - when in the 'classes reserved tab' right after being unbook
+        } else if (fit.getVagas() == null && classDate.before(afterReservationHours)) {
+            fit.setClassState(ClassState.UNBOOKED);
+        } else {
+            fit.setClassState(ClassState.UNAVAILABLE);
         }
     }
 
@@ -102,8 +109,9 @@ public class FitHelper {
             swBtnReserveClass.setTextColor(Color.BLUE);
             swBtnReserveClass.setText(R.string.class_status_reserved);
             swBtnReserveClass.setChecked(true);
+            swBtnReserveClass.setEnabled(true);
         } else if (fclass.getClassState() == ClassState.SCHEDULE) {
-            swBtnReserveClass.setTextColor(Color.rgb(255, 164,65));
+            swBtnReserveClass.setTextColor(Color.rgb(255, 164, 65));
             swBtnReserveClass.setText(R.string.class_status_schedule);
             swBtnReserveClass.setChecked(true);
         } else if (fclass.getClassState() == ClassState.EXPIRED) {
@@ -119,6 +127,16 @@ public class FitHelper {
             swBtnReserveClass.setTextColor(Color.rgb(94, 111, 199));
             swBtnReserveClass.setText(R.string.class_status_unavailable);
             swBtnReserveClass.setChecked(false);
+        } else if (fclass.getClassState() == ClassState.UNBOOKED) {
+            swBtnReserveClass.setText(R.string.class_status_unbooked);
+            swBtnReserveClass.setTextColor(Color.GRAY);
+            swBtnReserveClass.setChecked(false);
+            swBtnReserveClass.setEnabled(false);
+        } else if (fclass.getClassState() == ClassState.BOOKING) {
+            swBtnReserveClass.setText(R.string.class_status_booking);
+            swBtnReserveClass.setTextColor(Color.rgb(255, 164, 65));
+            swBtnReserveClass.setChecked(false);
+            swBtnReserveClass.setEnabled(false);
         }
     }
 
@@ -218,7 +236,8 @@ public class FitHelper {
     public static Calendar getClassDate(FitClass fitClass) throws ParseException {
         Calendar classDate = Calendar.getInstance();
         classDate.setTime(new SimpleDateFormat("yyyy-MM-dd|H:mm", Locale.getDefault())
-                .parse(fitClass.getDate().concat("|").concat(fitClass.getHorario())));
+                .parse((fitClass.getDate() != null ? fitClass.getDate() : fitClass.getRdata()).concat("|")
+                        .concat(fitClass.getHorario() != null ? fitClass.getHorario() : fitClass.getMhorario())));
         return classDate;
     }
 
