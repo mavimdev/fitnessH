@@ -79,7 +79,17 @@ public class ClassesActivity extends AppCompatActivity implements UpdateDataInte
             startActivity(new Intent(this, LoginActivity.class));
             finish();
         } else if (id == R.id.nav_share) {
-
+            try {
+                Intent i = new Intent(Intent.ACTION_SEND);
+                i.setType("text/plain");
+                i.putExtra(Intent.EXTRA_SUBJECT, "Fitness H");
+                String sAux = "\nRecomendo-te esta aplicação:\n\n";
+                sAux = sAux + "https://play.google.com/store/apps/details?id=the.package.id \n\n";
+                i.putExtra(Intent.EXTRA_TEXT, sAux);
+                startActivity(Intent.createChooser(i, "Seleccione"));
+            } catch(Exception e) {
+                //e.toString();
+            }
         }
 
         DrawerLayout drawer = findViewById(R.id.drawer_layout);

@@ -33,4 +33,5 @@
     <string name="class_status_unbooked">CANCELADA</string>
     <string name="class_status_booking">A RESERVAR...</string>
     <string name="no_classes_to_show">Não existem aulas para apresentar</string>
+    <string name="choose_favorite_club">Escolha o clube favorito:</string>
 </resources>

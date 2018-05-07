@@ -64,6 +64,7 @@ public class FitHelper {
     // public static final String CLASS_SOLD_OUT = "NÃO PODE RESERVAR A AULA! AULA ESGOTADA.";
     public static final String CLASS_RESERVED = "AULA RESERVADA";
 
+
     public static void classifyClass(FitClass fit) throws ParseException {
         // already classified, do nothing
         if (fit.getClassState() == ClassState.RESERVED || fit.getClassState() == ClassState.SCHEDULE) {
@@ -85,8 +86,10 @@ public class FitHelper {
         // in the past
         if (now.after(classDate)) {
             fit.setClassState(ClassState.EXPIRED);
-            // with free places
-        } else if (fit.getVagas() != null && fit.getVagas() > 0) {
+            // with free places or class in the day after during reservation hours
+        } else if (fit.getVagas() != null && fit.getVagas() > 0
+                || ( new Integer(0).equals(fit.getVagas()) && classDate.before(afterReservationHours)
+                && classDate.get(Calendar.DAY_OF_MONTH) != now.get(Calendar.DAY_OF_MONTH)) ) {
             fit.setClassState(ClassState.AVAILABLE);
             // zero places and in date
         } else if (new Integer(0).equals(fit.getVagas()) && classDate.before(afterReservationHours)) {
