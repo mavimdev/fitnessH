@@ -158,6 +158,7 @@ public class ClassAdapter extends RecyclerView.Adapter<ClassAdapter.ClassViewHol
                                 attemptsCount.getAndIncrement();
                                 if (response.get(0).getStatus().equalsIgnoreCase(FitHelper.CLASS_RESERVED)) {
                                     fitClass.setClassState(ClassState.RESERVED);
+                                    fitClass.setTitle(FitHelper.fitnessHutClubTitle);
                                     // refresh reserved classes fragment
                                     if (this.reloadFragment != null) {
                                         this.reloadFragment.refreshOtherClasses(holder.itemView.getContext());
