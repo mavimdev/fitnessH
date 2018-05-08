@@ -262,7 +262,7 @@ public class FitHelper {
         String contextTitle = fitClass != null ? fitClass.getTitle() + " - " + fitClass.getHorario() + " - " + fitClass.getAulan() : "";
 
         NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(context, "SCHEDULE_NOTIFICATION")
-                .setSmallIcon(R.drawable.ic_thumb_up)
+                .setSmallIcon(R.drawable.ic_fitness)
                 .setContentTitle(context.getString(R.string.class_reserved))
                 .setContentText(contextTitle)
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT)
@@ -283,7 +283,7 @@ public class FitHelper {
         PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent, 0);
 
         NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(context, "SCHEDULE_NOTIFICATION")
-                .setSmallIcon(R.drawable.ic_thumb_up)
+                .setSmallIcon(R.drawable.ic_fitness)
                 .setContentTitle(title)
                 .setContentText(message)
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT)

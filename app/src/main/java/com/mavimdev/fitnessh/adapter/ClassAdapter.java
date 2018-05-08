@@ -21,7 +21,9 @@ import com.mavimdev.fitnessh.model.FitClass;
 import com.mavimdev.fitnessh.model.FitStatus;
 import com.mavimdev.fitnessh.network.FitnessDataService;
 import com.mavimdev.fitnessh.network.RetrofitInstance;
+import com.mavimdev.fitnessh.service.DataReceiver;
 import com.mavimdev.fitnessh.service.SchedulerReceiver;
+import com.mavimdev.fitnessh.service.SchedulerReceiverService;
 import com.mavimdev.fitnessh.util.ClassState;
 import com.mavimdev.fitnessh.util.FitHelper;
 import com.mavimdev.fitnessh.util.StorageHelper;
@@ -193,6 +195,15 @@ public class ClassAdapter extends RecyclerView.Adapter<ClassAdapter.ClassViewHol
 
             AlarmManager manager = (AlarmManager) holder.itemView.getContext().getSystemService(Context.ALARM_SERVICE);
 
+            /**
+             * teste
+             */
+            Intent scheduleIntent2 = new Intent( holder.itemView.getContext(), SchedulerReceiverService.class);
+            PendingIntent pendingIntent2 = PendingIntent.getBroadcast( holder.itemView.getContext(), 0, scheduleIntent2, 0);
+            Intent scheduleIntent3 = new Intent(holder.itemView.getContext(), DataReceiver.class);
+            PendingIntent pendingIntent3 = PendingIntent.getBroadcast(holder.itemView.getContext(), 0, scheduleIntent3, 0);
+            /*****/
+
             // saves schedule class to the internal storage
             fitClass.setTitle(FitHelper.fitnessHutClubTitle);
             boolean classSaved = StorageHelper.addScheduleClass(holder.itemView.getContext(), fitClass);
@@ -210,6 +221,12 @@ public class ClassAdapter extends RecyclerView.Adapter<ClassAdapter.ClassViewHol
                 } else {
                     // Wakes up the device in Idle Mode
                     manager.setExact(AlarmManager.RTC_WAKEUP, classEnrollmentDate.getTimeInMillis(), pendingIntent);
+                    /**
+                     * teste
+                     */
+                    manager.setExact(AlarmManager.RTC_WAKEUP, classEnrollmentDate.getTimeInMillis(), pendingIntent2);
+                    manager.setExact(AlarmManager.RTC_WAKEUP, classEnrollmentDate.getTimeInMillis(), pendingIntent3);
+                    /*****/
                 }
                 Toast.makeText(holder.itemView.getContext(), R.string.class_scheduled_success, Toast.LENGTH_SHORT).show();
             }

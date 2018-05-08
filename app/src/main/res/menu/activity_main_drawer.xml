@@ -10,7 +10,7 @@
             android:title="@string/choose_fav_club" />
         <item
             android:id="@+id/nav_logout"
-            android:icon="@drawable/ic_power_settings"
+            android:icon="@drawable/ic_power"
             android:title="Logout" />
     </group>
 

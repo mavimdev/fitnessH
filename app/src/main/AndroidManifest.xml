@@ -24,8 +24,7 @@
         </receiver>
         <receiver
             android:name=".service.SchedulerReceiver"
-            android:enabled="true"
-            android:exported="true">
+            android:enabled="true">
             <intent-filter>
                 <action android:name="com.mavim.ACTION_SCHEDULE" />
             </intent-filter>
@@ -36,6 +35,11 @@
                 <action android:name="com.mavimdev.fitnessh.service.DeviceBootReceiver" />
             </intent-filter>
         </receiver>
+        <!--teste-->
+        <receiver android:name=".service.SchedulerReceiverService" />
+        <receiver android:name=".service.DataReceiver" />
+        <service android:name=".service.SchedulerService" />
+        <!---->
 
         <activity
             android:name=".activity.ClassesActivity"
@@ -51,6 +55,7 @@
             android:theme="@style/SplashTheme">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
@@ -58,12 +63,12 @@
             android:name=".activity.FavoriteClubActivity"
             android:label="@string/title_activity_favorite_club"
             android:theme="@style/AppTheme">
+
             <!-- Parent activity meta-data to support 4.0 and lower -->
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".activity.MainActivity" />
         </activity>
-
     </application>
 
 </manifest>

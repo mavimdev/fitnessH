@@ -16,6 +16,7 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.view.Menu;
 import android.view.MenuItem;
 
 import com.mavimdev.fitnessh.R;
@@ -87,7 +88,7 @@ public class ClassesActivity extends AppCompatActivity implements UpdateDataInte
                 sAux = sAux + "https://play.google.com/store/apps/details?id=the.package.id \n\n";
                 i.putExtra(Intent.EXTRA_TEXT, sAux);
                 startActivity(Intent.createChooser(i, "Seleccione"));
-            } catch(Exception e) {
+            } catch (Exception e) {
                 //e.toString();
             }
         }
@@ -96,6 +97,24 @@ public class ClassesActivity extends AppCompatActivity implements UpdateDataInte
         drawer.closeDrawer(GravityCompat.START);
         return true;
     }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.menu_refresh:
+                updateTodayData();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
+
 
     // Add Fragments to Tabs
     private void setupViewPager(ViewPager viewPager) {

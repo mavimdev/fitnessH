@@ -31,21 +31,28 @@ public class SchedulerReceiver extends BroadcastReceiver {
     @SuppressLint("CheckResult")
     @Override
     public void onReceive(Context context, Intent intent) {
-        FitHelper.notifyUser(context, "SchedulerReceived", "");
-        Log.i("SchedulerReceiver", "Schedule received");
-
+        FitHelper.notifyUser(context, "SchedulerReceiver: 1", "");
         PowerManager pm = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
-        PowerManager.WakeLock wakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "com.fitnessh");
-        if (!wakeLock.isHeld()) {
-            wakeLock.acquire(15000);
-        }
+        if (pm.isInteractive()) {
 
+        }
+        PowerManager.WakeLock wakefullLock = pm.newWakeLock(PowerManager.FULL_WAKE_LOCK | PowerManager.ACQUIRE_CAUSES_WAKEUP | PowerManager.ON_AFTER_RELEASE, "com.fitnessh.fulllock");
+        if (!wakefullLock.isHeld()) {
+            wakefullLock.acquire(120000);
+        }
+        PowerManager.WakeLock wakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "com.fitnessh.partlock");
+        if (!wakefullLock.isHeld()) {
+            wakeLock.acquire(120000);
+        }
 
         AtomicInteger attemptsCount = new AtomicInteger();
-        if (!FitHelper.SCHEDULE_INTENT_ACTION.equals(intent.getAction())) {
-            return;
-        }
+//        if (!FitHelper.SCHEDULE_INTENT_ACTION.equals(intent.getAction())) {
+//            return;
+//        }
         String fitClassId = intent.getStringExtra(FitHelper.COM_MAVIM_FITNESS_FIT_CLASS_ID);
+
+        FitHelper.notifyUser(context, "booking class: " + fitClassId, "action: " + intent.getAction());
+
         if (fitClassId == null) {
             throw new InvalidParameterException();
         }
@@ -71,6 +78,11 @@ public class SchedulerReceiver extends BroadcastReceiver {
                         }, err -> Log.e("Booking ScheduleClass", "Erro a reservar a aula: " + err.getMessage())
                 );
 
-        wakeLock.release();
+        if (wakeLock.isHeld()) {
+            wakeLock.release();
+        }
+        if (wakefullLock.isHeld()) {
+            wakefullLock.release();
+        }
     }
 }
