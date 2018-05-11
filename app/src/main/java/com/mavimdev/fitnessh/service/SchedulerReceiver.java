@@ -32,19 +32,18 @@ public class SchedulerReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         FitHelper.notifyUser(context, "SchedulerReceiver: 1", "");
+        PowerManager.WakeLock wakefullLock = null, wakeLock = null;
         PowerManager pm = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
-        if (pm.isInteractive()) {
-
+        if (!pm.isInteractive()) {
+            wakefullLock = pm.newWakeLock(PowerManager.FULL_WAKE_LOCK | PowerManager.ACQUIRE_CAUSES_WAKEUP | PowerManager.ON_AFTER_RELEASE, "com.fitnessh.fulllock");
+            if (!wakefullLock.isHeld()) {
+                wakefullLock.acquire(120000);
+            }
+            wakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "com.fitnessh.partlock");
+            if (!wakefullLock.isHeld()) {
+                wakeLock.acquire(120000);
+            }
         }
-        PowerManager.WakeLock wakefullLock = pm.newWakeLock(PowerManager.FULL_WAKE_LOCK | PowerManager.ACQUIRE_CAUSES_WAKEUP | PowerManager.ON_AFTER_RELEASE, "com.fitnessh.fulllock");
-        if (!wakefullLock.isHeld()) {
-            wakefullLock.acquire(120000);
-        }
-        PowerManager.WakeLock wakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "com.fitnessh.partlock");
-        if (!wakefullLock.isHeld()) {
-            wakeLock.acquire(120000);
-        }
-
         AtomicInteger attemptsCount = new AtomicInteger();
 //        if (!FitHelper.SCHEDULE_INTENT_ACTION.equals(intent.getAction())) {
 //            return;
@@ -78,10 +77,10 @@ public class SchedulerReceiver extends BroadcastReceiver {
                         }, err -> Log.e("Booking ScheduleClass", "Erro a reservar a aula: " + err.getMessage())
                 );
 
-        if (wakeLock.isHeld()) {
+        if (wakeLock != null && wakeLock.isHeld()) {
             wakeLock.release();
         }
-        if (wakefullLock.isHeld()) {
+        if (wakefullLock != null && wakefullLock.isHeld()) {
             wakefullLock.release();
         }
     }
