@@ -107,7 +107,6 @@ public class ClassAdapter extends RecyclerView.Adapter<ClassAdapter.ClassViewHol
 
     @SuppressLint("CheckResult")
     private void checkClass(final ClassViewHolder holder, FitClass fitClass) {
-        fitClass.setClassState(ClassState.UNAVAILABLE);
         AtomicInteger attemptsCount = new AtomicInteger();
         if (fitClass.getClassState() == ClassState.AVAILABLE) {
             // reserve the class
@@ -185,8 +184,6 @@ public class ClassAdapter extends RecyclerView.Adapter<ClassAdapter.ClassViewHol
             Calendar classEnrollmentDate;
             try {
                 classEnrollmentDate = FitHelper.calculateEnrollmentClassDate(fitClass);
-                classEnrollmentDate = Calendar.getInstance();
-                classEnrollmentDate.add(Calendar.SECOND, 15);
             } catch (ParseException e) {
                 Toast.makeText(holder.itemView.getContext(), "Erro a obter horário da aula.", Toast.LENGTH_SHORT).show();
                 return;
