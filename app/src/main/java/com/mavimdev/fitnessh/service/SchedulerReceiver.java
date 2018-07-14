@@ -31,10 +31,10 @@ public class SchedulerReceiver extends BroadcastReceiver {
     @SuppressLint("CheckResult")
     @Override
     public void onReceive(Context context, Intent intent) {
-        FitHelper.notifyUser(context, "SchedulerReceiver: 1", "");
+//        FitHelper.notifyUser(context, "SchedulerReceiver: 1", "");
         PowerManager.WakeLock wakefullLock = null, wakeLock = null;
         PowerManager pm = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
-        if (!pm.isInteractive()) {
+        if (pm != null && !pm.isInteractive()) {
             wakefullLock = pm.newWakeLock(PowerManager.FULL_WAKE_LOCK | PowerManager.ACQUIRE_CAUSES_WAKEUP | PowerManager.ON_AFTER_RELEASE, "com.fitnessh.fulllock");
             if (!wakefullLock.isHeld()) {
                 wakefullLock.acquire(120000);
@@ -45,20 +45,19 @@ public class SchedulerReceiver extends BroadcastReceiver {
             }
         }
         AtomicInteger attemptsCount = new AtomicInteger();
-//        if (!FitHelper.SCHEDULE_INTENT_ACTION.equals(intent.getAction())) {
-//            return;
-//        }
         String fitClassId = intent.getStringExtra(FitHelper.COM_MAVIM_FITNESS_FIT_CLASS_ID);
+        String clientId = intent.getStringExtra(FitHelper.COM_MAVIM_FITNESS_FIT_CLIENT_ID);
 
-        FitHelper.notifyUser(context, "booking class: " + fitClassId, "action: " + intent.getAction());
+//        FitHelper.notifyUser(context, "booking class: " + fitClassId, "action: " + intent.getAction());
 
         if (fitClassId == null) {
             throw new InvalidParameterException();
         }
-        Log.i("Booking ScheduleClass", "start booking");
+//        Log.i("Booking ScheduleClass", "start booking: classid: " + fitClassId + " | ");
+//        Log.i("Booking ScheduleClass", "classid: " + fitClassId + " | clientID: "  +  clientId);
         // reserve the class
         RetrofitInstance.getRetrofitInstance().create(FitnessDataService.class)
-                .bookClass(FitHelper.clientId, fitClassId, FitHelper.RESERVATION_PASSWORD)
+                .bookClass(clientId, fitClassId, FitHelper.RESERVATION_PASSWORD)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .repeatWhen(observable -> observable.delay(FitHelper.ATTEMPTS_SECONDS_REPEAT, TimeUnit.SECONDS))

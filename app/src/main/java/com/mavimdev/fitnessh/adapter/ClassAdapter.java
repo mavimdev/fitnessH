@@ -21,9 +21,7 @@ import com.mavimdev.fitnessh.model.FitClass;
 import com.mavimdev.fitnessh.model.FitStatus;
 import com.mavimdev.fitnessh.network.FitnessDataService;
 import com.mavimdev.fitnessh.network.RetrofitInstance;
-import com.mavimdev.fitnessh.service.DataReceiver;
 import com.mavimdev.fitnessh.service.SchedulerReceiver;
-import com.mavimdev.fitnessh.service.SchedulerReceiverService;
 import com.mavimdev.fitnessh.util.ClassState;
 import com.mavimdev.fitnessh.util.FitHelper;
 import com.mavimdev.fitnessh.util.StorageHelper;
@@ -107,7 +105,7 @@ public class ClassAdapter extends RecyclerView.Adapter<ClassAdapter.ClassViewHol
 
     @SuppressLint("CheckResult")
     private void checkClass(final ClassViewHolder holder, FitClass fitClass) {
-        fitClass.setClassState(ClassState.UNAVAILABLE);
+//        /**/fitClass.setClassState(ClassState.UNAVAILABLE);
         AtomicInteger attemptsCount = new AtomicInteger();
         if (fitClass.getClassState() == ClassState.AVAILABLE) {
             // reserve the class
@@ -185,8 +183,8 @@ public class ClassAdapter extends RecyclerView.Adapter<ClassAdapter.ClassViewHol
             Calendar classEnrollmentDate;
             try {
                 classEnrollmentDate = FitHelper.calculateEnrollmentClassDate(fitClass);
-                classEnrollmentDate = Calendar.getInstance();
-                classEnrollmentDate.add(Calendar.SECOND, 15);
+//                /**/classEnrollmentDate = Calendar.getInstance();
+//                /**/classEnrollmentDate.add(Calendar.SECOND, 15);
             } catch (ParseException e) {
                 Toast.makeText(holder.itemView.getContext(), "Erro a obter horário da aula.", Toast.LENGTH_SHORT).show();
                 return;
@@ -194,6 +192,7 @@ public class ClassAdapter extends RecyclerView.Adapter<ClassAdapter.ClassViewHol
             Intent scheduleIntent = new Intent(holder.itemView.getContext(), SchedulerReceiver.class);
             scheduleIntent.setAction(FitHelper.SCHEDULE_INTENT_ACTION);
             scheduleIntent.putExtra(FitHelper.COM_MAVIM_FITNESS_FIT_CLASS_ID, fitClass.getId());
+            scheduleIntent.putExtra(FitHelper.COM_MAVIM_FITNESS_FIT_CLIENT_ID, FitHelper.clientId);
             PendingIntent pendingIntent = PendingIntent.getBroadcast(holder.itemView.getContext(), Integer.parseInt(fitClass.getId()), scheduleIntent, 0);
 
             AlarmManager manager = (AlarmManager) holder.itemView.getContext().getSystemService(Context.ALARM_SERVICE);
@@ -201,10 +200,10 @@ public class ClassAdapter extends RecyclerView.Adapter<ClassAdapter.ClassViewHol
             /**
              * teste
              */
-            Intent scheduleIntent2 = new Intent( holder.itemView.getContext(), SchedulerReceiverService.class);
-            PendingIntent pendingIntent2 = PendingIntent.getBroadcast( holder.itemView.getContext(), 0, scheduleIntent2, 0);
-            Intent scheduleIntent3 = new Intent(holder.itemView.getContext(), DataReceiver.class);
-            PendingIntent pendingIntent3 = PendingIntent.getBroadcast(holder.itemView.getContext(), 0, scheduleIntent3, 0);
+//            Intent scheduleIntent2 = new Intent( holder.itemView.getContext(), SchedulerReceiverService.class);
+//            PendingIntent pendingIntent2 = PendingIntent.getBroadcast( holder.itemView.getContext(), 0, scheduleIntent2, 0);
+//            Intent scheduleIntent3 = new Intent(holder.itemView.getContext(), DataReceiver.class);
+//            PendingIntent pendingIntent3 = PendingIntent.getBroadcast(holder.itemView.getContext(), 0, scheduleIntent3, 0);
             /*****/
 
             // saves schedule class to the internal storage
@@ -227,8 +226,8 @@ public class ClassAdapter extends RecyclerView.Adapter<ClassAdapter.ClassViewHol
                     /**
                      * teste
                      */
-                    manager.setExact(AlarmManager.RTC_WAKEUP, classEnrollmentDate.getTimeInMillis(), pendingIntent2);
-                    manager.setExact(AlarmManager.RTC_WAKEUP, classEnrollmentDate.getTimeInMillis(), pendingIntent3);
+//                    manager.setExact(AlarmManager.RTC_WAKEUP, classEnrollmentDate.getTimeInMillis(), pendingIntent2);
+//                    manager.setExact(AlarmManager.RTC_WAKEUP, classEnrollmentDate.getTimeInMillis(), pendingIntent3);
                     /*****/
                 }
                 Toast.makeText(holder.itemView.getContext(), R.string.class_scheduled_success, Toast.LENGTH_SHORT).show();

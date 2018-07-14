@@ -1,10 +1,14 @@
 package com.mavimdev.fitnessh.util;
 
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
+import android.os.Build;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
 import android.util.Log;
@@ -55,6 +59,7 @@ public class FitHelper {
     // config
     public static final String SCHEDULE_INTENT_ACTION = "com.mavim.ACTION_SCHEDULE";
     public static final String COM_MAVIM_FITNESS_FIT_CLASS_ID = "com.mavim.fitnessH.fitClassId";
+    public static final String COM_MAVIM_FITNESS_FIT_CLIENT_ID = "com.mavim.fitnessH.fitClientId";
     public static final String SCHEDULE_INFO_FILE = "scheduleclasses.fit";
     public static final String SUCCESS = "success";
     public static final int REQUEST_FAVORITE_CODE = 1;
@@ -88,8 +93,8 @@ public class FitHelper {
             fit.setClassState(ClassState.EXPIRED);
             // with free places or class in the day after during reservation hours
         } else if (fit.getVagas() != null && fit.getVagas() > 0
-                || ( new Integer(0).equals(fit.getVagas()) && classDate.before(afterReservationHours)
-                && classDate.get(Calendar.DAY_OF_MONTH) != now.get(Calendar.DAY_OF_MONTH)) ) {
+                || (new Integer(0).equals(fit.getVagas()) && classDate.before(afterReservationHours)
+                && classDate.get(Calendar.DAY_OF_MONTH) != now.get(Calendar.DAY_OF_MONTH))) {
             fit.setClassState(ClassState.AVAILABLE);
             // zero places and in date
         } else if (new Integer(0).equals(fit.getVagas()) && classDate.before(afterReservationHours)) {
@@ -254,45 +259,72 @@ public class FitHelper {
             return;
         }
 
-        // Create an explicit intent for an Activity in your app
+        NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(context, "fit_notify");
         Intent intent = new Intent(context, MainActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent, 0);
 
-        String contextTitle = fitClass != null ? fitClass.getTitle() + " - " + fitClass.getHorario() + " - " + fitClass.getAulan() : "";
+        String title = context.getString(R.string.class_reserved);
+        String message = fitClass != null ? fitClass.getTitle() + " - " + fitClass.getHorario() + " - " + fitClass.getAulan() : "";
 
-        NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(context, "SCHEDULE_NOTIFICATION")
-                .setSmallIcon(R.drawable.ic_fitness)
-                .setContentTitle(context.getString(R.string.class_reserved))
-                .setContentText(contextTitle)
-                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-                // Set the intent that will fire when the user taps the notification
-                .setContentIntent(pendingIntent)
-                .setAutoCancel(true);
+        NotificationCompat.BigTextStyle bigText = new NotificationCompat.BigTextStyle();
+        bigText.bigText(message);
+        bigText.setBigContentTitle(title);
+//        bigText.setSummaryText("summary");
 
-        NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
-        // notificationId is a unique int for each notification that you must define
-        notificationManager.notify(Integer.valueOf(fitClassId), mBuilder.build());
-    }
-
-
-    public static void notifyUser(Context context, String title, String message) {
-        // Create an explicit intent for an Activity in your app
-        Intent intent = new Intent(context, MainActivity.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent, 0);
-
-        NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(context, "SCHEDULE_NOTIFICATION")
+        mBuilder.setContentIntent(pendingIntent)
                 .setSmallIcon(R.drawable.ic_fitness)
                 .setContentTitle(title)
                 .setContentText(message)
-                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-                // Set the intent that will fire when the user taps the notification
-                .setContentIntent(pendingIntent)
-                .setAutoCancel(true);
+                .setPriority(NotificationCompat.PRIORITY_MAX)
+                .setAutoCancel(true)
+                .setStyle(bigText);
 
-        NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
-        // notificationId is a unique int for each notification that you must define
-        notificationManager.notify(ThreadLocalRandom.current().nextInt(1000, 10000), mBuilder.build());
+        NotificationManager mNotificationManager =
+                (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel channel = new NotificationChannel("fit_notify",
+                    "Fitness H channel",
+                    NotificationManager.IMPORTANCE_DEFAULT);
+            mNotificationManager.createNotificationChannel(channel);
+        }
+
+        mNotificationManager.notify(0, mBuilder.build());
     }
+
+
+//    public static void notifyUser(Context context, String title, String message) {
+//        NotificationCompat.Builder mBuilder =
+//                new NotificationCompat.Builder(context, "fit_notify");
+//        Intent intent = new Intent(context, MainActivity.class);
+//        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+//        PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent, 0);
+//
+//        NotificationCompat.BigTextStyle bigText = new NotificationCompat.BigTextStyle();
+//        bigText.bigText(message);
+//        bigText.setBigContentTitle(title);
+////        bigText.setSummaryText("summary");
+//
+//        mBuilder.setContentIntent(pendingIntent);
+//        mBuilder.setSmallIcon(R.mipmap.ic_launcher_round);
+//        mBuilder.setContentTitle(title);
+//        mBuilder.setContentText(message);
+//        mBuilder.setPriority(Notification.PRIORITY_MAX);
+//        mBuilder.setAutoCancel(true);
+//        mBuilder.setStyle(bigText);
+//
+//        NotificationManager mNotificationManager =
+//                (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+//
+//
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+//            NotificationChannel channel = new NotificationChannel("fit_notify",
+//                    "Fitness H channel",
+//                    NotificationManager.IMPORTANCE_DEFAULT);
+//            mNotificationManager.createNotificationChannel(channel);
+//        }
+//
+//        mNotificationManager.notify(0, mBuilder.build());
+//    }
 }
