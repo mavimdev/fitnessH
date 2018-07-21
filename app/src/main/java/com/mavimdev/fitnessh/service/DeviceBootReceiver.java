@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.os.Build;
 import android.util.Log;
 
+import com.mavimdev.fitnessh.BuildConfig;
 import com.mavimdev.fitnessh.model.FitClass;
 import com.mavimdev.fitnessh.util.FitHelper;
 import com.mavimdev.fitnessh.util.StorageHelper;
@@ -27,17 +28,17 @@ public class DeviceBootReceiver extends BroadcastReceiver {
         List<FitClass> scheduleClasses = null;
 
         if (intent.getAction().equalsIgnoreCase(Intent.ACTION_BOOT_COMPLETED)) {
-            Log.i("FitnessH", "device boot received");
+            if (BuildConfig.DEBUG) Log.i("FitnessH", "device boot received");
             // read from schedule file
             try {
                 scheduleClasses = StorageHelper.loadScheduleClasses(context);
             } catch (IOException e) {
-                Log.e("FitnessH", "Error reading schedule classes from file");
+                if (BuildConfig.DEBUG) Log.e("FitnessH", "Error reading schedule classes from file");
             }
 
             // for each class create schedule
             if (scheduleClasses != null) {
-                Log.i("FitnessH", "read " + scheduleClasses.size() + " schedule classes.");
+                if (BuildConfig.DEBUG) Log.i("FitnessH", "read " + scheduleClasses.size() + " schedule classes.");
                 Intent scheduleIntent = new Intent(context, SchedulerReceiver.class);
                 scheduleIntent.setAction(FitHelper.SCHEDULE_INTENT_ACTION);
 
@@ -47,7 +48,7 @@ public class DeviceBootReceiver extends BroadcastReceiver {
                     try {
                         classEnrollmentDate = FitHelper.calculateEnrollmentClassDate(fclass);
                     } catch (ParseException e) {
-                        Log.e("FitnessH", "Error parsing class date");
+                        if (BuildConfig.DEBUG) Log.e("FitnessH", "Error parsing class date");
                         continue;
                     }
 

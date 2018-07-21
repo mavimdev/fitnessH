@@ -15,7 +15,7 @@
 //
 //    @Override
 //    public int onStartCommand(Intent intent, int flags, int startId) {
-//        FitHelper.notifyUser(this, "SchedulerService: 2", "");
+//        FitHelper.notifyUser(this, "SchedulerService2", "", "SchedulerService2");
 //        return super.onStartCommand(intent, flags, startId);
 //    }
 //

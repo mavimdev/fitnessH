@@ -6,6 +6,7 @@ import android.util.Log;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
+import com.mavimdev.fitnessh.BuildConfig;
 import com.mavimdev.fitnessh.model.FitClass;
 
 import java.io.File;
@@ -64,7 +65,7 @@ public class StorageHelper {
         try (FileOutputStream fos = context.openFileOutput(FitHelper.SCHEDULE_INFO_FILE, Context.MODE_PRIVATE)) {
             fos.write(classesJson.getBytes());
         } catch (IOException e) {
-            Log.e(FitHelper.class.getSimpleName(), e.getMessage());
+            if (BuildConfig.DEBUG) Log.e(FitHelper.class.getSimpleName(), e.getMessage());
             throw e;
         }
     }
@@ -86,7 +87,7 @@ public class StorageHelper {
                 fis.read(data);
                 fileContent = new String(data, "UTF-8");
             } catch (IOException e) {
-                Log.e(FitHelper.class.getSimpleName(), e.getMessage());
+                if (BuildConfig.DEBUG) Log.e(FitHelper.class.getSimpleName(), e.getMessage());
                 throw e;
             }
         }

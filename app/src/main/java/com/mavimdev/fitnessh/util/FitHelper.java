@@ -10,10 +10,10 @@ import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Build;
 import android.support.v4.app.NotificationCompat;
-import android.support.v4.app.NotificationManagerCompat;
 import android.util.Log;
 import android.widget.CompoundButton;
 
+import com.mavimdev.fitnessh.BuildConfig;
 import com.mavimdev.fitnessh.R;
 import com.mavimdev.fitnessh.activity.MainActivity;
 import com.mavimdev.fitnessh.model.FitClass;
@@ -27,7 +27,6 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
-import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * Created by migue on 04/03/2018.
@@ -250,12 +249,12 @@ public class FitHelper {
     }
 
 
-    public static void notifyUserFitClassFromStorage(Context context, String fitClassId) {
+    public static void notifyUserFitClassFromStorage(Context context, String fitClassId, String title) {
         FitClass fitClass;
         try {
             fitClass = StorageHelper.loadScheduleClass(context, fitClassId);
         } catch (IOException e) {
-            Log.e("FitnessH", "Error loading schedule class from storage");
+            if (BuildConfig.DEBUG) Log.e("FitnessH", "Error loading schedule class from storage");
             return;
         }
 
@@ -264,7 +263,6 @@ public class FitHelper {
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent, 0);
 
-        String title = context.getString(R.string.class_reserved);
         String message = fitClass != null ? fitClass.getTitle() + " - " + fitClass.getHorario() + " - " + fitClass.getAulan() : "";
 
         NotificationCompat.BigTextStyle bigText = new NotificationCompat.BigTextStyle();
@@ -294,37 +292,37 @@ public class FitHelper {
     }
 
 
-//    public static void notifyUser(Context context, String title, String message) {
-//        NotificationCompat.Builder mBuilder =
-//                new NotificationCompat.Builder(context, "fit_notify");
-//        Intent intent = new Intent(context, MainActivity.class);
-//        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-//        PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent, 0);
-//
-//        NotificationCompat.BigTextStyle bigText = new NotificationCompat.BigTextStyle();
-//        bigText.bigText(message);
-//        bigText.setBigContentTitle(title);
-////        bigText.setSummaryText("summary");
-//
-//        mBuilder.setContentIntent(pendingIntent);
-//        mBuilder.setSmallIcon(R.mipmap.ic_launcher_round);
-//        mBuilder.setContentTitle(title);
-//        mBuilder.setContentText(message);
-//        mBuilder.setPriority(Notification.PRIORITY_MAX);
-//        mBuilder.setAutoCancel(true);
-//        mBuilder.setStyle(bigText);
-//
-//        NotificationManager mNotificationManager =
-//                (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-//
-//
-//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-//            NotificationChannel channel = new NotificationChannel("fit_notify",
-//                    "Fitness H channel",
-//                    NotificationManager.IMPORTANCE_DEFAULT);
-//            mNotificationManager.createNotificationChannel(channel);
-//        }
-//
-//        mNotificationManager.notify(0, mBuilder.build());
-//    }
+    public static void notifyUser(Context context, String title, String message, String channel) {
+        NotificationCompat.Builder mBuilder =
+                new NotificationCompat.Builder(context, "fit_notify_" + channel);
+        Intent intent = new Intent(context, MainActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent, 0);
+
+        NotificationCompat.BigTextStyle bigText = new NotificationCompat.BigTextStyle();
+        bigText.bigText(message);
+        bigText.setBigContentTitle(title);
+//        bigText.setSummaryText("summary");
+
+        mBuilder.setContentIntent(pendingIntent);
+        mBuilder.setSmallIcon(R.mipmap.ic_launcher_round);
+        mBuilder.setContentTitle(title);
+        mBuilder.setContentText(message);
+        mBuilder.setPriority(Notification.PRIORITY_MAX);
+        mBuilder.setAutoCancel(true);
+        mBuilder.setStyle(bigText);
+
+        NotificationManager mNotificationManager =
+                (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel notificationChannel = new NotificationChannel("fit_notify_" + channel,
+                    "Fitness H channel",
+                    NotificationManager.IMPORTANCE_DEFAULT);
+            mNotificationManager.createNotificationChannel(notificationChannel);
+        }
+
+        mNotificationManager.notify(0, mBuilder.build());
+    }
 }
