@@ -37,9 +37,9 @@
             </intent-filter>
         </receiver>
         <!--teste-->
-        <receiver android:name=".service.SchedulerReceiverService" />
-        <receiver android:name=".service.DataReceiver" />
-        <service android:name=".service.SchedulerService" />
+        <!--<receiver android:name=".service.SchedulerReceiverService" />-->
+        <!--<receiver android:name=".service.DataReceiver" />-->
+        <!--<service android:name=".service.SchedulerService" />-->
         <!---->
 
         <activity
