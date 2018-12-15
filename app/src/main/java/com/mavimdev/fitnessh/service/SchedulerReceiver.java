@@ -48,10 +48,6 @@ public class SchedulerReceiver extends BroadcastReceiver {
         String fitClassId = intent.getStringExtra(FitHelper.COM_MAVIM_FITNESS_FIT_CLASS_ID);
         String clientId = intent.getStringExtra(FitHelper.COM_MAVIM_FITNESS_FIT_CLIENT_ID);
 
-//        FitHelper.notifyUser(context, "booking class: " + fitClassId, "action: " + intent.getAction());
-
-//        Log.i("Booking ScheduleClass", "start booking: classid: " + fitClassId + " | ");
-//        Log.i("Booking ScheduleClass", "classid: " + fitClassId + " | clientID: "  +  clientId);
         // reserve the class
         try {
             RetrofitInstance.getRetrofitInstance().create(FitnessDataService.class)
