@@ -50,9 +50,9 @@ public class FitHelper {
     public static final int TOMORROW_CLASSES_TAB = 1;
     public static final int RESERVED_CLASSES_TAB = 2;
     public static final int HOURS_BEFORE_RESERVATION = 10;
-    public static final int MAX_ATTEMPTS = 15;
+    public static final int MAX_ATTEMPTS = 60;
     public static final int MAX_ATTEMPTS_SOLD_OUT = 6;
-    public static final int ATTEMPTS_SECONDS_REPEAT = 7;
+    public static final int ATTEMPTS_SECONDS_REPEAT = 4;
     public static final long ATTEMPTS_SECONDS_REPEAT_SOLD_OUT = 10;
     public final static String RESERVATION_PASSWORD = "e94b10f0da8d42095ca5c20927416de5";
     // config
@@ -65,7 +65,7 @@ public class FitHelper {
     public static final String REFRESH_CLASSES = "fit_refresh_classes";
     // result messages
     public static final String CLASS_NOT_AVAILABLE = "NÃO PODE RESERVAR A AULA! AULA INDISPONÍVEL.";
-    // public static final String CLASS_SOLD_OUT = "NÃO PODE RESERVAR A AULA! AULA ESGOTADA.";
+    public static final String CLASS_SOLD_OUT = "NÃO PODE RESERVAR A AULA! AULA ESGOTADA.";
     public static final String CLASS_RESERVED = "AULA RESERVADA";
 
 
