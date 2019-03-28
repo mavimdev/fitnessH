@@ -57,16 +57,23 @@ public class TomorrowClassesFragment extends Fragment implements UpdateClassesIn
 
     @SuppressLint("CheckResult")
     public void loadData(Context context) {
+        ArrayList<FitClass> reservedClassesAux = new ArrayList<>();
         /*Create handle for the RetrofitInstance interface*/
         FitnessDataService service = RetrofitInstance.getRetrofitInstance().create(FitnessDataService.class);
         /*Call the method to get the classes data*/
-        Maybe<ArrayList<FitClass>> call = service.getTomorrowClasses(FitHelper.fitnessHutClubId, FitHelper.packFitnessHut);
+        Maybe<ArrayList<FitClass>> call = service.getReservedClasses(FitHelper.clientId);
         disposable = call.subscribeOn(Schedulers.io())
+                .flatMap(reservedClasses -> {
+                    reservedClassesAux.addAll(reservedClasses);
+                      return service.getTomorrowClasses(FitHelper.fitnessHutClubId, FitHelper.packFitnessHut);
+                })
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(tomorrowClasses -> {
                             List<FitClass> scheduleClasses = StorageHelper.loadScheduleClasses(context);
 
-                            for (FitClass fit : tomorrowClasses) {
+                                                              for (FitClass fit : tomorrowClasses) {
+                                fit.setCtitle(FitHelper.fitnessHutClubTitle);
+                                FitHelper.markIfReserved(fit, reservedClassesAux);
                                 FitHelper.markIfSchedule(fit, scheduleClasses);
                             }
                             ClassAdapter adapter = new ClassAdapter(tomorrowClasses);

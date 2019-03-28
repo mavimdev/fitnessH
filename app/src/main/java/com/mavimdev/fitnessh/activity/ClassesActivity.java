@@ -85,7 +85,7 @@ public class ClassesActivity extends AppCompatActivity implements UpdateDataInte
                 i.setType("text/plain");
                 i.putExtra(Intent.EXTRA_SUBJECT, "Fitness H");
                 String sAux = "\nRecomendo-te esta aplicação:\n\n";
-                sAux = sAux + "https://play.google.com/store/apps/details?id=the.package.id \n\n";
+                sAux = sAux + "https://play.google.com/store/apps/details?id=com.mavimdev.fitnessh \n\n";
                 i.putExtra(Intent.EXTRA_TEXT, sAux);
                 startActivity(Intent.createChooser(i, "Seleccione"));
             } catch (Exception e) {
