@@ -24,9 +24,9 @@ public class StorageHelper {
     /**
      * Adds a schedule class to the exist ones
      *
-     * @param context
-     * @param fitClass
-     * @return
+     * @param context context
+     * @param fitClass class
+     * @return boolean
      */
     public static boolean addScheduleClass(Context context, FitClass fitClass) {
         // loads schedule classes
@@ -53,9 +53,9 @@ public class StorageHelper {
     /**
      * saves the schedules classes on file
      *
-     * @param context
-     * @param scheduleClasses
-     * @throws IOException
+     * @param context context
+     * @param scheduleClasses classes
+     * @throws IOException exception
      */
     private static void saveScheduleClasses(Context context, List<FitClass> scheduleClasses) throws IOException {
         Gson gson = new GsonBuilder().create();
@@ -73,13 +73,13 @@ public class StorageHelper {
     /**
      * loads the schedule classes from file
      *
-     * @param context
-     * @return
-     * @throws IOException
+     * @param context context
+     * @return list of classes
+     * @throws IOException exception
      */
     public static List<FitClass> loadScheduleClasses(Context context) throws IOException {
         File fitFile = new File(context.getFilesDir(), FitHelper.SCHEDULE_INFO_FILE);
-        String fileContent = new String();
+        String fileContent = null;
         // read the file if exists.
         if (fitFile.exists()) {
             try (FileInputStream fis = context.openFileInput(FitHelper.SCHEDULE_INFO_FILE)) {
@@ -105,9 +105,9 @@ public class StorageHelper {
     /**
      * Removes a schedule class from file
      *
-     * @param context
-     * @param fitClassId
-     * @return
+     * @param context context
+     * @param fitClassId class id
+     * @return boolean
      */
     public static boolean removeScheduleClass(Context context, String fitClassId) {
         // loads schedule classes

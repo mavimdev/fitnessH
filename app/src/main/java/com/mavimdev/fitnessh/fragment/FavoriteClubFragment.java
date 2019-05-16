@@ -13,6 +13,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.SeekBar;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -92,13 +93,12 @@ public class FavoriteClubFragment extends Fragment {
                     }
                 }
             }
-
-
             @Override
             public void onNothingSelected(AdapterView<?> adapterView) {
 
             }
         });
+
     }
 
     public void updateSelectedClub() {

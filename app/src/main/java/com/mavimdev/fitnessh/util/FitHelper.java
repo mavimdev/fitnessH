@@ -38,6 +38,7 @@ public class FitHelper {
     private static final String SP_CLIENT_ID = "SP_CLIENT_ID";
     private static final String SP_PACK_FITNESS_HUT = "SP_PACK_FITNESS_HUT";
     private static final String SP_FAVORITE_CLUB_TITLE = "SP_FAVORITE_CLUB_TITLE";
+    private static final String SP_ATTEMPTS_SECONDS_REPEAT = "SP_ATTEMPTS_SECONDS_REPEAT";
     // user details
     public static String fitnessHutClubId;
     public static String fitnessHutClubTitle;
@@ -45,6 +46,7 @@ public class FitHelper {
     private static String fitnessFavoriteClubTitle;
     public static String packFitnessHut;
     public static String clientId;
+    public static int attemptsSecondsRepeat = 4;
     // constants
     public static final int TODAY_CLASSES_TAB = 0;
     public static final int TOMORROW_CLASSES_TAB = 1;
@@ -52,7 +54,6 @@ public class FitHelper {
     public static final int HOURS_BEFORE_RESERVATION = 10;
     public static final int MAX_ATTEMPTS = 60;
     public static final int MAX_ATTEMPTS_SOLD_OUT = 6;
-    public static final int ATTEMPTS_SECONDS_REPEAT = 4;
     public static final long ATTEMPTS_SECONDS_REPEAT_SOLD_OUT = 10;
     public final static String RESERVATION_PASSWORD = "e94b10f0da8d42095ca5c20927416de5";
     // config
@@ -213,6 +214,7 @@ public class FitHelper {
         fitnessFavoriteClubTitle = "";
         packFitnessHut = "";
         clientId = "";
+        attemptsSecondsRepeat = 4;
     }
 
 
@@ -226,6 +228,7 @@ public class FitHelper {
             fitnessHutClubTitle = sharedPref.getString(FitHelper.SP_FAVORITE_CLUB_TITLE, "");
             fitnessFavoriteClubTitle = sharedPref.getString(FitHelper.SP_FAVORITE_CLUB_TITLE, "");
             packFitnessHut = sharedPref.getString(FitHelper.SP_PACK_FITNESS_HUT, "");
+            attemptsSecondsRepeat = sharedPref.getInt(FitHelper.SP_ATTEMPTS_SECONDS_REPEAT, 4);
         }
     }
 
@@ -237,6 +240,14 @@ public class FitHelper {
                 context.getString(R.string.preference_file_key), Context.MODE_PRIVATE).edit();
         sharedPrefEditor.putString(SP_FAVORITE_CLUB_ID, club.getId());
         sharedPrefEditor.putString(SP_FAVORITE_CLUB_TITLE, club.getTitle());
+        sharedPrefEditor.apply();
+    }
+
+    public static void saveBookDelay(Context context, int delay) {
+        attemptsSecondsRepeat = delay;
+        SharedPreferences.Editor sharedPrefEditor = context.getSharedPreferences(
+                context.getString(R.string.preference_file_key), Context.MODE_PRIVATE).edit();
+        sharedPrefEditor.putInt(SP_ATTEMPTS_SECONDS_REPEAT, delay);
         sharedPrefEditor.apply();
     }
 

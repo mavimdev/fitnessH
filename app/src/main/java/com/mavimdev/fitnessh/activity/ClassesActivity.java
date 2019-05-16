@@ -69,7 +69,7 @@ public class ClassesActivity extends AppCompatActivity implements UpdateDataInte
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
-        if (id == R.id.nav_favclub) {
+        if (id == R.id.nav_settings) {
             Intent intent = new Intent(this, FavoriteClubActivity.class);
             startActivityForResult(intent, FitHelper.REQUEST_FAVORITE_CODE);
             item.setCheckable(false);

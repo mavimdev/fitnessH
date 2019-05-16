@@ -17,12 +17,12 @@
     <string name="class_status_soldout">ESGOTADA</string>
     <string name="class_status_unavailable">AGENDAR</string>
     <string name="nav_header_subtitle">mavimdev@gmail.com</string>
-    <string name="choose_fav_club">Escolher clube favorito</string>
+    <string name="choose_settings">Configurações</string>
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
     <string name="club">Clube:</string>
     <string name="reserve_classes">Reservar aulas</string>
-    <string name="title_activity_favorite_club">Clube Favorito</string>
+    <string name="title_activity_favorite_club">Configurações</string>
     <string name="title_activity_teste">testeActivity</string>
     <string name="class_reserved">Aula reservada com sucesso</string>
     <string name="book_cancelled">Reserva cancelada.</string>
@@ -33,5 +33,8 @@
     <string name="class_status_unbooked">CANCELADA</string>
     <string name="class_status_booking">A RESERVAR...</string>
     <string name="no_classes_to_show">Não existem aulas para apresentar</string>
-    <string name="choose_favorite_club">Escolha o clube favorito:</string>
+    <string name="choose_favorite_club">Clube favorito:</string>
+    <string name="booking_delay">Atraso na marcação da aula (seg):</string>
+    <string name="logout">Logout</string>
+    <string name="share">Share</string>
 </resources>

@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.widget.SeekBar;
 import android.widget.Toast;
 
 import com.mavimdev.fitnessh.R;
@@ -24,6 +25,9 @@ import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
 
 public class FavoriteClubActivity extends AppCompatActivity {
+    private static int SEEKBAR_INCREMENT_BY = 1;
+    private static int SEEKBAR_MAX = 20;
+    private static int SEEKBAR_MIN = 4;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,6 +41,29 @@ public class FavoriteClubActivity extends AppCompatActivity {
         if (actionBar != null) {
             actionBar.setDisplayHomeAsUpEnabled(true);
         }
+
+        SeekBar delaySeek = findViewById(R.id.seek_delay);
+        delaySeek.setMax(SEEKBAR_MAX);
+        delaySeek.incrementProgressBy(SEEKBAR_INCREMENT_BY);
+        delaySeek.setProgress(FitHelper.attemptsSecondsRepeat);
+
+        delaySeek.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
+                if (seekBar.getProgress() < SEEKBAR_MIN) {
+                    seekBar.setProgress(SEEKBAR_MIN);
+                }
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                FitHelper.saveBookDelay(FavoriteClubActivity.this, seekBar.getProgress());
+            }
+        });
     }
 
     @SuppressLint("CheckResult")

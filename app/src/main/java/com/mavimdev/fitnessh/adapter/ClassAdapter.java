@@ -115,7 +115,7 @@ public class ClassAdapter extends RecyclerView.Adapter<ClassAdapter.ClassViewHol
                     .bookClass(FitHelper.clientId, fitClass.getId(), FitHelper.RESERVATION_PASSWORD)
                     .subscribeOn(Schedulers.io())
                     .observeOn(AndroidSchedulers.mainThread())
-                    .repeatWhen(observable -> observable.delay(FitHelper.ATTEMPTS_SECONDS_REPEAT, TimeUnit.SECONDS))
+                    .repeatWhen(observable -> observable.delay(FitHelper.attemptsSecondsRepeat, TimeUnit.SECONDS))
                     .takeUntil((Predicate<? super ArrayList<FitStatus>>) response -> !response.get(0).getStatus().equalsIgnoreCase(FitHelper.CLASS_NOT_AVAILABLE))
                     .takeUntil(observable -> attemptsCount.get() >= FitHelper.MAX_ATTEMPTS_SOLD_OUT)
                     .subscribe(response -> {
