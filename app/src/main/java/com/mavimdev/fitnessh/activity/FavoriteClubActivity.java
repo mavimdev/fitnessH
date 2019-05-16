@@ -9,6 +9,7 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.widget.SeekBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.mavimdev.fitnessh.R;
@@ -26,8 +27,10 @@ import io.reactivex.schedulers.Schedulers;
 
 public class FavoriteClubActivity extends AppCompatActivity {
     private static int SEEKBAR_INCREMENT_BY = 1;
-    private static int SEEKBAR_MAX = 20;
-    private static int SEEKBAR_MIN = 4;
+    private static int SEEKBAR_MAX = 16;
+    private static int SEEKBAR_MIN = 1;
+    private static int SEEKBAR_INCREMENT_OF = 4;
+    TextView progressSeek;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,14 +48,18 @@ public class FavoriteClubActivity extends AppCompatActivity {
         SeekBar delaySeek = findViewById(R.id.seek_delay);
         delaySeek.setMax(SEEKBAR_MAX);
         delaySeek.incrementProgressBy(SEEKBAR_INCREMENT_BY);
-        delaySeek.setProgress(FitHelper.attemptsSecondsRepeat);
+        delaySeek.setProgress(FitHelper.attemptsSecondsRepeat - SEEKBAR_INCREMENT_OF);
+
+        this.progressSeek = findViewById(R.id.textBookDelayProgress);
+        this.progressSeek.setText(FitHelper.attemptsSecondsRepeat + " segundos");
 
         delaySeek.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
-                if (seekBar.getProgress() < SEEKBAR_MIN) {
-                    seekBar.setProgress(SEEKBAR_MIN);
-                }
+//                if (seekBar.getProgress() < SEEKBAR_MIN) {
+//                    seekBar.setProgress(SEEKBAR_MIN);
+//                }
+                progressSeek.setText(seekBar.getProgress() + SEEKBAR_INCREMENT_OF + " segundos");
             }
 
             @Override
@@ -61,7 +68,7 @@ public class FavoriteClubActivity extends AppCompatActivity {
 
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
-                FitHelper.saveBookDelay(FavoriteClubActivity.this, seekBar.getProgress());
+                FitHelper.saveBookDelay(FavoriteClubActivity.this, seekBar.getProgress() + SEEKBAR_INCREMENT_OF);
             }
         });
     }

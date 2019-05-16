@@ -34,7 +34,7 @@
     <string name="class_status_booking">A RESERVAR...</string>
     <string name="no_classes_to_show">Não existem aulas para apresentar</string>
     <string name="choose_favorite_club">Clube favorito:</string>
-    <string name="booking_delay">Atraso na marcação da aula (seg):</string>
+    <string name="booking_delay">Atraso na marcação da aula:</string>
     <string name="logout">Logout</string>
     <string name="share">Share</string>
 </resources>
