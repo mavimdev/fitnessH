@@ -80,10 +80,9 @@
         android:textColor="@android:color/white"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.502"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/appBarLayout"
-        app:layout_constraintVertical_bias="0.441" />
+        app:layout_constraintTop_toBottomOf="@+id/fragment_favorite_club"
+        app:layout_constraintVertical_bias="0.09" />
 
     <SeekBar
         android:id="@+id/seek_delay"
