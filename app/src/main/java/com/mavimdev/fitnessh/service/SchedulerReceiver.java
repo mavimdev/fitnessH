@@ -31,9 +31,10 @@ public class SchedulerReceiver extends BroadcastReceiver {
     @SuppressLint("CheckResult")
     @Override
     public void onReceive(Context context, Intent intent) {
-//        FitHelper.notifyUser(context, "SchedulerReceiver1", "", "SchedulerReceiver1");
+        FitHelper.loadSharedPreferences(context);
         PowerManager.WakeLock wakefullLock = null, wakeLock = null;
         PowerManager pm = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
+
         if (pm != null && !pm.isInteractive()) {
             wakefullLock = pm.newWakeLock(PowerManager.FULL_WAKE_LOCK | PowerManager.ACQUIRE_CAUSES_WAKEUP | PowerManager.ON_AFTER_RELEASE, "com.fitnessh.fulllock");
             if (!wakefullLock.isHeld()) {
