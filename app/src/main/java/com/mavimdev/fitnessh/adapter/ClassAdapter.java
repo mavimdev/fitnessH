@@ -119,7 +119,8 @@ public class ClassAdapter extends RecyclerView.Adapter<ClassAdapter.ClassViewHol
                     .takeUntil((Predicate<? super ArrayList<FitStatus>>) response -> !response.get(0).getStatus().equalsIgnoreCase(FitHelper.CLASS_NOT_AVAILABLE))
                     .takeUntil(observable -> attemptsCount.get() >= FitHelper.MAX_ATTEMPTS_SOLD_OUT)
                     .subscribe(response -> {
-                                if (BuildConfig.DEBUG) Log.i("FitnessH", "Available: Trying to book class - attempt: " + attemptsCount.get());
+                                if (BuildConfig.DEBUG)
+                                    Log.i("FitnessH", "Available: Trying to book class - attempt: " + attemptsCount.get());
                                 attemptsCount.getAndIncrement();
                                 if (response.get(0).getStatus().equalsIgnoreCase(FitHelper.CLASS_RESERVED)) {
                                     fitClass.setClassState(ClassState.RESERVED);
@@ -155,7 +156,8 @@ public class ClassAdapter extends RecyclerView.Adapter<ClassAdapter.ClassViewHol
 //                    .takeUntil((Predicate<? super ArrayList<FitStatus>>) response -> !response.get(0).getStatus().equalsIgnoreCase(FitHelper.CLASS_SOLD_OUT))
 //                    .takeUntil(observable -> attemptsCount.get() >= FitHelper.MAX_ATTEMPTS_SOLD_OUT)
                     .subscribe(response -> {
-                                if (BuildConfig.DEBUG) Log.i("FitnessH", "Sold Out: Trying to book class - attempt: " + attemptsCount.get());
+                                if (BuildConfig.DEBUG)
+                                    Log.i("FitnessH", "Sold Out: Trying to book class - attempt: " + attemptsCount.get());
                                 attemptsCount.getAndIncrement();
                                 if (response.get(0).getStatus().equalsIgnoreCase(FitHelper.CLASS_RESERVED)) {
                                     fitClass.setClassState(ClassState.RESERVED);
@@ -166,12 +168,13 @@ public class ClassAdapter extends RecyclerView.Adapter<ClassAdapter.ClassViewHol
                                     }
                                 }
 //                                if (!response.get(0).getStatus().equals(FitHelper.CLASS_SOLD_OUT) || attemptsCount.get() >= FitHelper.MAX_ATTEMPTS_SOLD_OUT) {
-                                    FitHelper.classifyClass(fitClass);
-                                    FitHelper.tintClass(fitClass, holder.swBtnReserveClass);
-                                    Toast.makeText(holder.itemView.getContext(), response.get(0).getStatus(), Toast.LENGTH_LONG).show();
+                                FitHelper.classifyClass(fitClass);
+                                FitHelper.tintClass(fitClass, holder.swBtnReserveClass);
+                                Toast.makeText(holder.itemView.getContext(), response.get(0).getStatus(), Toast.LENGTH_LONG).show();
 //                                }
                             }, err -> {
-                                if (BuildConfig.DEBUG) Log.e("FitnessH", "Check class - Sold out: " + err.getMessage());
+                                if (BuildConfig.DEBUG)
+                                    Log.e("FitnessH", "Check class - Sold out: " + err.getMessage());
                                 Toast.makeText(holder.itemView.getContext(), "Erro a reservar a aula.", Toast.LENGTH_LONG).show();
                                 FitHelper.classifyClass(fitClass);
                                 FitHelper.tintClass(fitClass, holder.swBtnReserveClass);
@@ -214,7 +217,8 @@ public class ClassAdapter extends RecyclerView.Adapter<ClassAdapter.ClassViewHol
 
             if (manager != null) {
                 // sets the schedule
-                if (BuildConfig.DEBUG) Log.i("fitnessH", "class " + fitClass.getAulan() + " (" + fitClass.getId() + ") being schedule on: " + classEnrollmentDate.getTime());
+                if (BuildConfig.DEBUG)
+                    Log.i("fitnessH", "class " + fitClass.getAulan() + " (" + fitClass.getId() + ") being schedule on: " + classEnrollmentDate.getTime());
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                     // Wakes up the device in Doze Mode
                     manager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, classEnrollmentDate.getTimeInMillis(), pendingIntent);
@@ -274,7 +278,8 @@ public class ClassAdapter extends RecyclerView.Adapter<ClassAdapter.ClassViewHol
                                 FitHelper.classifyClass(fitClass);
                                 FitHelper.tintClass(fitClass, holder.swBtnReserveClass);
                             }, err -> {
-                                if (BuildConfig.DEBUG) Log.e("FitnessH", "unbook class: " + err.getMessage());
+                                if (BuildConfig.DEBUG)
+                                    Log.e("FitnessH", "unbook class: " + err.getMessage());
                                 Toast.makeText(holder.itemView.getContext(), R.string.error_cancelling_reserve, Toast.LENGTH_LONG).show();
                             }
                     );
@@ -285,7 +290,13 @@ public class ClassAdapter extends RecyclerView.Adapter<ClassAdapter.ClassViewHol
             PendingIntent pendingIntent = PendingIntent.getBroadcast(holder.itemView.getContext(), Integer.parseInt(fitClass.getId()),
                     new Intent(holder.itemView.getContext(), SchedulerReceiver.class), 0);
             if (manager != null) {
-                manager.cancel(pendingIntent);
+                try {
+                    manager.cancel(pendingIntent);
+                    pendingIntent.cancel();
+                } catch (Exception e) {
+                    Toast.makeText(holder.itemView.getContext(), "Erro: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                }
+            } else {
             }
             // remove from storage
             StorageHelper.removeScheduleClass(holder.itemView.getContext(), fitClass.getId());
